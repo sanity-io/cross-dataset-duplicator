@@ -9,8 +9,7 @@ const apiVersion = `2021-05-19`
 const originClient = sanityClient.withConfig({apiVersion})
 
 export default function MigrationQuery({token}) {
-  // const [value, setValue] = useState(`*[_type == "article"][0..1]`)
-  const [value, setValue] = useState(`*[_type == "article"]`)
+  const [value, setValue] = useState(``)
   const [docs, setDocs] = useState([])
 
   function handleSubmit(e) {
@@ -50,6 +49,7 @@ export default function MigrationQuery({token}) {
                     <TextInput
                       style={{fontFamily: 'monospace'}}
                       fontSize={2}
+                      // eslint-disable-next-line react/jsx-no-bind
                       onChange={(event) => setValue(event.currentTarget.value)}
                       padding={4}
                       placeholder={`*[_type == "article"]`}

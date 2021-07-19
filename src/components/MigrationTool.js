@@ -384,6 +384,6 @@ export default function MigrationTool({docs = [], token = ``}) {
 }
 
 MigrationTool.propTypes = {
-  docs: PropTypes.array.isRequired,
+  docs: PropTypes.arrayOf(PropTypes.shape({_id: PropTypes.string})).isRequired,
   token: PropTypes.string.isRequired,
 }

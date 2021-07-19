@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import PropTypes from 'prop-types'
 import {useSecrets, SettingsView} from 'sanity-secrets'
-import {Flex, Box, Spinner} from '@sanity/ui'
+import {studioTheme, ThemeProvider, Flex, Box, Spinner} from '@sanity/ui'
 
 import MigrationQuery from './MigrationQuery'
 import MigrationTool from './MigrationTool'
@@ -25,11 +25,13 @@ export default function Migration({mode, docs}) {
 
   if (loading) {
     return (
-      <Flex justify="center" align="center">
-        <Box padding={5}>
-          <Spinner />
-        </Box>
-      </Flex>
+      <ThemeProvider theme={studioTheme}>
+        <Flex justify="center" align="center">
+          <Box padding={5}>
+            <Spinner />
+          </Box>
+        </Flex>
+      </ThemeProvider>
     )
   }
 
@@ -45,14 +47,22 @@ export default function Migration({mode, docs}) {
   }
 
   if (mode === 'tool') {
-    return <MigrationQuery token={secrets.bearerToken} />
+    return (
+      <ThemeProvider theme={studioTheme}>
+        <MigrationQuery token={secrets.bearerToken} />
+      </ThemeProvider>
+    )
   }
 
   if (!docs.length) {
     return <div>No docs passed into Migration Tool</div>
   }
 
-  return <MigrationTool docs={docs} token={secrets.bearerToken} />
+  return (
+    <ThemeProvider theme={studioTheme}>
+      <MigrationTool docs={docs} token={secrets.bearerToken} />
+    </ThemeProvider>
+  )
 }
 
 Migration.propTypes = {
