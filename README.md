@@ -12,13 +12,13 @@ Both methods can gather References –- and do a recursive search for References
 
 The Migration Tool allows you to migrate Documents that are returned from any GROQ query.
 
-<< Insert GIF >>
+![2021-07-19 15 35 19](https://user-images.githubusercontent.com/9684022/126177728-67ba3789-3467-4fa3-b645-508402546767.gif)
 
 ## Document Action
 
 The Migration Document Action allows you to migrate an individual Document.
 
-<< Insert GIF >>
+![2021-07-19 15 34 21](https://user-images.githubusercontent.com/9684022/126177655-05074748-6212-4ff1-aa1f-67a535c02101.gif)
 
 ## Required Setup
 
