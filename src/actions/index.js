@@ -4,7 +4,7 @@ import config from 'config:migration'
 import MigrateAction from './MigrateAction'
 
 export default function resolveDocumentActions(props) {
-  const migrationTypes = config?.migration?.types ?? []
+  const migrationTypes = config?.types ?? []
   const defaultActions = defaultResolve(props)
 
   // Insert 'Migrate' after 'Publish' only on config'd types

@@ -38,10 +38,8 @@ For example:
 
 ```json
 {
-  "migration": {
-    "tool": true,
-    "types": ["article", "page"]
-  }
+  "tool": true,
+  "types": ["article", "page"]
 }
 ```
 

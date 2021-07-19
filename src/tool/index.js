@@ -3,7 +3,7 @@ import config from 'config:migration'
 
 import Migration from '../components/Migration'
 
-export default config?.migration?.tool
+export default config?.tool
   ? {
       title: 'Migration',
       name: 'migration',

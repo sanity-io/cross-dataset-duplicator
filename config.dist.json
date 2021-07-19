@@ -1,6 +1,4 @@
 {
-  "migration": {
-    "tool": true,
-    "types": []
-  }
+  "tool": true,
+  "types": []
 }
