@@ -1,10 +1,14 @@
-# Sanity Migration Tool & Document Action
+# Sanity Migration: Tool & Document Action
 
 Proof of Concept for empowering content editors to migrate Documents and Assets between Sanity Datasets from inside Sanity Studio.
 
-🚧 **Note:** This plugin has gone through basic testing but may not account for all edge cases. Proceed with caution as it **can instantly write changes** to Datasets.
+🚧 **Important Notes:** 🚧
 
-Before starting a Migration you can select which related Documents and Assets to include. Keep in mind Migrations will likely fail if every Referenced Document or Asset is not already present at the destination Dataset.
+- Proceed with caution as this plugin **can instantly write changes** to Datasets.
+- This plugin has gone through basic testing but may not account for all edge cases.
+- Larger migrations may take more time, especially with Assets. The plugin tries to mitigate this with rate limiting asset uploads to 3 at a time.
+
+Before starting a Migration you can select which Documents and Assets to include. Keep in mind Migrations will likely fail if every Referenced Document or Asset is not already present at the destination Dataset.
 
 Both methods can gather References –- and do a recursive search for References of References –- so the Migration has every Document and Asset it needs to complete.
 
@@ -60,3 +64,5 @@ You can reveal the token belonging to your user account with `sanity debug --sec
 
 - Save predefined GROQ queries in the Tool to make bulk repeated Migrations simpler
 - More UI affordances eg "Only Migrate New", "Only Migrate Documents", etc.
+- Config options for allowed migrations (eg Dev -> Staging but not Dev -> Live)
+- Config options for permissions/user role checks

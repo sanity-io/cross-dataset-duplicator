@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-no-bind */
 import PropTypes from 'prop-types'
 import React, {useState, useMemo, useEffect} from 'react'
+import pLimit from 'p-limit'
 import {extract} from '@sanity/mutator'
 import {
   Card,
@@ -68,7 +69,8 @@ export default function MigrationTool({docs = [], token = ``}) {
   const [payload, setPayload] = useState([])
   const [hasReferences, setHasReferences] = useState(false)
   const [isMigrating, setIsMigrating] = useState(false)
-  const [progress, setProgress] = useState(0)
+  const [isGathering, setIsGathering] = useState(false)
+  const [progress, setProgress] = useState([0, 0])
 
   const originDataset = useMemo(() => sanityClient.clientConfig.dataset, [])
 
@@ -161,6 +163,7 @@ export default function MigrationTool({docs = [], token = ``}) {
 
   // Find and recursively follow references beginning with this document
   async function handleReferences() {
+    setIsGathering(true)
     const docIds = docs.map((doc) => doc._id)
 
     if (!docIds.length) {
@@ -180,14 +183,18 @@ export default function MigrationTool({docs = [], token = ``}) {
 
     setPayload(payloadShaped)
     updatePayloadStatuses(payloadShaped)
+    setIsGathering(false)
   }
 
   // Migrate payload to destination dataset
   async function handleMigrate() {
     setIsMigrating(true)
-    const migrationCount = payload.filter((doc) => doc.include).length
+    // const migrationCount = payload.filter((item) => item.include).length
+    const assetsCount = payload.filter(
+      ({doc, include}) => include && ['sanity.imageAsset', 'sanity.fileAsset'].includes(doc._type)
+    ).length
     let currentProgress = 0
-    setProgress(currentProgress)
+    setProgress([currentProgress, assetsCount])
 
     setMessage({text: 'Migrating...'})
 
@@ -196,12 +203,15 @@ export default function MigrationTool({docs = [], token = ``}) {
 
     const transaction = destinationClient.transaction()
 
+    // Prepare pLimit to prevent issues with concurrency (rate limiting)
+    const limit = pLimit(3)
+    
     // Upload assets before the transaction
     // Add Documents to the transaction
-    await Promise.all(
-      payload
-        .filter((doc) => doc.include)
-        .map(async ({doc}) => {
+    const payloadPromises = payload
+      .filter((item) => item.include)
+      .map(async ({doc}) => {
+        return limit(async () => {
           if (['sanity.imageAsset', 'sanity.fileAsset'].includes(doc._type)) {
             // Download and upload asset
             // Get the *original* image with this dlRaw param to create the same determenistic _id
@@ -221,29 +231,34 @@ export default function MigrationTool({docs = [], token = ``}) {
               return transaction.createOrReplace(assetDoc)
             })
 
-            currentProgress = Math.round((currentProgress + 100 / migrationCount) * 100) / 100
-            setMessage({text: `Migration ${currentProgress}% Complete`})
-            return setProgress(currentProgress)
+            currentProgress += 1
+            setMessage({
+              text: `Migrating ${currentProgress}/${assetsCount} ${
+                assetsCount === 1 ? `Assets` : `Assets`
+              }`,
+            })
+
+            return setProgress([currentProgress, assetsCount])
           }
 
-          await transaction.createOrReplace(doc)
-
-          currentProgress = Math.round((currentProgress + 100 / migrationCount) * 100) / 100
-          setMessage({text: `Migration ${currentProgress}% Complete`})
-          return setProgress(currentProgress)
+          return transaction.createOrReplace(doc)
         })
-    )
+      })
 
-    return transaction
+    // Promises are limited to three at once
+    await Promise.all(payloadPromises)
+
+    await transaction
       .commit()
       .then(() => {
         setMessage({tone: 'positive', text: 'Migration complete!'})
-        setIsMigrating(false)
       })
       .catch((err) => {
         setMessage({tone: 'critical', text: err.details.description})
-        setIsMigrating(false)
       })
+
+    setIsMigrating(false)
+    setProgress(0)
   }
 
   function handleChange(e) {
@@ -251,7 +266,7 @@ export default function MigrationTool({docs = [], token = ``}) {
   }
 
   const payloadCount = payload.length
-  const selectedCount = payload.filter((doc) => doc.include).length
+  const selectedCount = payload.filter((item) => item.include).length
 
   if (!spaces.length) {
     return <div>No spaces?!</div>
@@ -259,12 +274,12 @@ export default function MigrationTool({docs = [], token = ``}) {
 
   return (
     <Container width={1}>
-      <Card padding={0}>
-        <Stack space={5}>
+      <Card>
+        <Stack>
           <>
-            <Stack
-              paddingY={3}
-              space={3}
+            <Card
+              borderBottom
+              padding={4}
               style={{
                 position: 'sticky',
                 top: 0,
@@ -272,61 +287,62 @@ export default function MigrationTool({docs = [], token = ``}) {
                 backgroundColor: `rgba(255,255,255,0.9)`,
               }}
             >
-              <Flex space={3}>
-                <Stack style={{flex: 1}} space={3}>
-                  <Label>Migrate from</Label>
-                  <Select readOnly value={spaces.find((space) => space.disabled).name}>
-                    {spaces
-
-                      .filter((space) => space.disabled)
-                      .map((space) => (
+              <Stack space={3}>
+                <Flex space={3}>
+                  <Stack style={{flex: 1}} space={3}>
+                    <Label>Migrate from</Label>
+                    <Select readOnly value={spaces.find((space) => space.disabled).name}>
+                      {spaces
+                        .filter((space) => space.disabled)
+                        .map((space) => (
+                          <option key={space.name} value={space.name} disabled={space.disabled}>
+                            {space.title ?? space.name}
+                            {space.disabled ? ` (Current)` : ``}
+                          </option>
+                        ))}
+                    </Select>
+                  </Stack>
+                  <Box padding={4} paddingTop={5} paddingBottom={0}>
+                    <Text size={3}>
+                      <ArrowRightIcon />
+                    </Text>
+                  </Box>
+                  <Stack style={{flex: 1}} space={3}>
+                    <Label>To Destination Dataset</Label>
+                    <Select onChange={handleChange}>
+                      {spaces.map((space) => (
                         <option key={space.name} value={space.name} disabled={space.disabled}>
                           {space.title ?? space.name}
                           {space.disabled ? ` (Current)` : ``}
                         </option>
                       ))}
-                  </Select>
-                </Stack>
-                <Box padding={4} paddingTop={5} paddingBottom={0}>
-                  <Text size={3}>
-                    <ArrowRightIcon />
-                  </Text>
-                </Box>
-                <Stack style={{flex: 1}} space={3}>
-                  <Label>To Destination Dataset</Label>
-                  <Select onChange={handleChange}>
-                    {spaces.map((space) => (
-                      <option key={space.name} value={space.name} disabled={space.disabled}>
-                        {space.title ?? space.name}
-                        {space.disabled ? ` (Current)` : ``}
-                      </option>
-                    ))}
-                  </Select>
-                </Stack>
-              </Flex>
-              {message?.text && (
-                <Card padding={3} radius={2} shadow={1} tone={message?.tone ?? 'transparent'}>
-                  <Text size={1}>{message.text}</Text>
-                </Card>
-              )}
-              {progress > 0 && progress < 100 && (
-                <Card border radius={2}>
-                  <Card
-                    style={{
-                      width: '100%',
-                      transform: `scaleX(${progress / 100})`,
-                      transformOrigin: 'left',
-                      transition: 'transform .2s ease',
-                      boxSizing: 'border-box',
-                    }}
-                    padding={1}
-                    tone="positive"
-                  />
-                </Card>
-              )}
-            </Stack>
+                    </Select>
+                  </Stack>
+                </Flex>
+                {message?.text && (
+                  <Card padding={3} radius={2} shadow={1} tone={message?.tone ?? 'transparent'}>
+                    <Text size={1}>{message.text}</Text>
+                  </Card>
+                )}
+                {isMigrating && (
+                  <Card border radius={2}>
+                    <Card
+                      style={{
+                        width: '100%',
+                        transform: `scaleX(${progress[0] / progress[1]})`,
+                        transformOrigin: 'left',
+                        transition: 'transform .2s ease',
+                        boxSizing: 'border-box',
+                      }}
+                      padding={1}
+                      tone="positive"
+                    />
+                  </Card>
+                )}
+              </Stack>
+            </Card>
             {payload.length > 0 && (
-              <Stack space={3}>
+              <Stack padding={4} space={3}>
                 <Label>
                   {`${selectedCount}/${payloadCount} ${
                     payloadCount === 1 ? `Document` : `Documents`
@@ -351,7 +367,7 @@ export default function MigrationTool({docs = [], token = ``}) {
                 ))}
               </Stack>
             )}
-            <Stack space={2}>
+            <Stack space={2} padding={4} paddingTop={0}>
               {hasReferences && (
                 <Button
                   fontSize={2}
@@ -361,7 +377,7 @@ export default function MigrationTool({docs = [], token = ``}) {
                   icon={SearchIcon}
                   onClick={handleReferences}
                   text="Gather References"
-                  disabled={isMigrating}
+                  disabled={isMigrating || isGathering}
                 />
               )}
               <Button
@@ -373,7 +389,7 @@ export default function MigrationTool({docs = [], token = ``}) {
                 text={`Migrate ${selectedCount} ${
                   selectedCount === 1 ? `Document` : `Documents`
                 } to ${spaces.find((space) => space.name === destinationValue)?.title}`}
-                disabled={isMigrating || !selectedCount}
+                disabled={isMigrating || !selectedCount || isGathering}
               />
             </Stack>
           </>

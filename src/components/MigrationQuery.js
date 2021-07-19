@@ -9,6 +9,7 @@ const apiVersion = `2021-05-19`
 const originClient = sanityClient.withConfig({apiVersion})
 
 export default function MigrationQuery({token}) {
+  // const [value, setValue] = useState(`*[_type == "article"]`)
   const [value, setValue] = useState(``)
   const [docs, setDocs] = useState([])
 
@@ -23,24 +24,24 @@ export default function MigrationQuery({token}) {
 
   // Auto-load initial textinput value
   useEffect(() => {
-    if (!docs.length) {
+    if (!docs.length && value) {
       handleSubmit()
     }
   }, [])
 
   return (
     <Container width={3} padding={[0, 0, 0, 5]}>
-      <Grid columns={[1, 1, 1, 2]} gap={4}>
+      <Grid columns={[1, 1, 1, 2]} gap={[1, 1, 1, 4]}>
         <Box padding={[2, 2, 2, 0]}>
-          <Card padding={5} scheme="dark" radius={5}>
-            <Stack space={4} paddingTop={3}>
+          <Card padding={4} scheme="dark" radius={3}>
+            <Stack space={4}>
               <Box>
                 <Label>Initial Documents Query</Label>
               </Box>
               <Box>
                 <Text>
-                  Start with a valid GROQ query to load initial documents. It will need to return an
-                  array of Objects.
+                  Start with a valid GROQ query to load initial documents. The query will need to
+                  return an Array of Objects.
                 </Text>
               </Box>
               <form onSubmit={handleSubmit}>
@@ -53,7 +54,7 @@ export default function MigrationQuery({token}) {
                       onChange={(event) => setValue(event.currentTarget.value)}
                       padding={4}
                       placeholder={`*[_type == "article"]`}
-                      value={value}
+                      value={value ?? ``}
                     />
                   </Box>
                   <Button
@@ -62,6 +63,7 @@ export default function MigrationQuery({token}) {
                     tone="primary"
                     onClick={handleSubmit}
                     text="Query"
+                    disabled={!value}
                   />
                 </Flex>
               </form>
@@ -70,14 +72,12 @@ export default function MigrationQuery({token}) {
         </Box>
         {!docs?.length > 0 && (
           <Container width={1}>
-            <Card padding={5}>No Documents match this query</Card>
+            <Card padding={5}>
+              {value ? `No Documents match this query` : `Start with a valid GROQ query`}
+            </Card>
           </Container>
         )}
-        {docs?.length > 0 && (
-          <Card padding={5}>
-            <MigrationTool docs={docs} token={token} />
-          </Card>
-        )}
+        {docs?.length > 0 && <MigrationTool docs={docs} token={token} />}
       </Grid>
     </Container>
   )
