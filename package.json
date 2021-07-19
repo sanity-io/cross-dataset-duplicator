@@ -1,0 +1,54 @@
+{
+  "name": "sanity-plugin-migration",
+  "version": "1.0.0",
+  "description": "Empower content editors to migrate Documents and Assets between Sanity Datasets from inside Sanity Studio",
+  "main": "lib/YourPlugin.js",
+  "scripts": {
+    "build": "sanipack build",
+    "watch": "sanipack build --watch",
+    "prepublishOnly": "sanipack build && sanipack verify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/SimeonGriggs/sanity-plugin-migration.git"
+  },
+  "keywords": [
+    "sanity",
+    "sanity-plugin"
+  ],
+  "author": "Simeon Griggs <simeon@sanity.io>",
+  "license": "MIT",
+  "dependencies": {
+    "prop-types": "15.7.2"
+  },
+  "devDependencies": {
+    "sanipack": "2.0.1",
+    "prettier": "2.3.2",
+    "eslint": "7.31.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-config-sanity": "5.1.0",
+    "eslint-plugin-react": "7.24.0"
+  },
+  "peerDependencies": {
+    "react": "^17.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/SimeonGriggs/sanity-plugin-migration/issues"
+  },
+  "homepage": "https://github.com/SimeonGriggs/sanity-plugin-migration#readme",
+  "prettier": {
+    "semi": false,
+    "printWidth": 100,
+    "bracketSpacing": false,
+    "singleQuote": true
+  },
+  "eslintConfig": {
+    "parser": "sanipack/babel/eslint-parser",
+    "extends": [
+      "sanity",
+      "sanity/react",
+      "prettier",
+      "prettier/react"
+    ]
+  }
+}
