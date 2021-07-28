@@ -2,7 +2,8 @@
 import PropTypes from 'prop-types'
 import React, {useState, useMemo, useEffect} from 'react'
 import pLimit from 'p-limit'
-import {extract} from '@sanity/mutator'
+import {extract, extractWithPath} from '@sanity/mutator'
+import { dset } from 'dset';
 import {
   Card,
   Container,
@@ -189,7 +190,7 @@ export default function MigrationTool({docs = [], token = ``}) {
   // Migrate payload to destination dataset
   async function handleMigrate() {
     setIsMigrating(true)
-    // const migrationCount = payload.filter((item) => item.include).length
+
     const assetsCount = payload.filter(
       ({doc, include}) => include && ['sanity.imageAsset', 'sanity.fileAsset'].includes(doc._type)
     ).length
@@ -201,16 +202,16 @@ export default function MigrationTool({docs = [], token = ``}) {
     const destinationClient = sanityClient.withConfig(clientConfig)
     destinationClient.clientConfig.dataset = destinationValue
 
-    const transaction = destinationClient.transaction()
+    const transactionDocs = []
+    const svgMaps = []
 
-    // Prepare pLimit to prevent issues with concurrency (rate limiting)
+    // Prepare pLimit to rate limit + prevent issues with concurrency
     const limit = pLimit(3)
-    
+
     // Upload assets before the transaction
-    // Add Documents to the transaction
     const payloadPromises = payload
       .filter((item) => item.include)
-      .map(async ({doc}) => {
+      .map(({doc}) => {
         return limit(async () => {
           if (['sanity.imageAsset', 'sanity.fileAsset'].includes(doc._type)) {
             // Download and upload asset
@@ -228,7 +229,12 @@ export default function MigrationTool({docs = [], token = ``}) {
               const options = {filename: doc.originalFilename}
               const assetDoc = await destinationClient.assets.upload(uploadType, assetData, options)
 
-              return transaction.createOrReplace(assetDoc)
+              // SVG _id's need remapping before migration
+              if (doc?.extension === 'svg') {
+                svgMaps.push({old: doc._id, new: assetDoc._id})
+              }
+
+              transactionDocs.push(assetDoc)
             })
 
             currentProgress += 1
@@ -241,12 +247,40 @@ export default function MigrationTool({docs = [], token = ``}) {
             return setProgress([currentProgress, assetsCount])
           }
 
-          return transaction.createOrReplace(doc)
+          return transactionDocs.push(doc)
         })
       })
 
     // Promises are limited to three at once
     await Promise.all(payloadPromises)
+
+    // Remap SVG references to new _id's
+    const transactionDocsMapped = transactionDocs.map((doc) => {
+      const expr = `.._ref`
+      const references = extractWithPath(expr, doc)
+
+      if (!references.length) {
+        return doc
+      }
+
+      // For every found _ref, search for an SVG asset _id and update
+      references.forEach((ref) => {
+        const newRefValue = svgMaps.find((asset) => asset.old === ref.value)?.new
+        
+        if (newRefValue) {
+          const refPath = ref.path.join('.')
+
+          dset(doc, refPath, newRefValue);
+        }
+      })
+
+      return doc
+    })
+
+    // Create transaction
+    const transaction = destinationClient.transaction()
+
+    transactionDocsMapped.forEach((doc) => transaction.createOrReplace(doc))
 
     await transaction
       .commit()
@@ -266,10 +300,17 @@ export default function MigrationTool({docs = [], token = ``}) {
   }
 
   const payloadCount = payload.length
+  const firstSvgIndex = payload.findIndex(({doc}) => doc.extension === 'svg')
   const selectedCount = payload.filter((item) => item.include).length
 
   if (!spaces.length) {
-    return <div>No spaces?!</div>
+    return (
+      <Card padding={3} radius={2} shadow={1} tone={'critical'}>
+        <Text size={2}>
+          No Spaces found in <code>sanity.json</code>
+        </Text>
+      </Card>
+    )
   }
 
   return (
@@ -308,7 +349,7 @@ export default function MigrationTool({docs = [], token = ``}) {
                     </Text>
                   </Box>
                   <Stack style={{flex: 1}} space={3}>
-                    <Label>To Destination Dataset</Label>
+                    <Label>To Destination</Label>
                     <Select onChange={handleChange}>
                       {spaces.map((space) => (
                         <option key={space.name} value={space.name} disabled={space.disabled}>
@@ -348,22 +389,34 @@ export default function MigrationTool({docs = [], token = ``}) {
                     payloadCount === 1 ? `Document` : `Documents`
                   } to Migrate`}
                 </Label>
-                {payload.map(({doc, include, status}) => (
-                  <Flex key={doc._id} align="center">
-                    <Checkbox checked={include} onChange={() => handleCheckbox(doc._id)} />
-                    <Box style={{flex: 1}} paddingX={3}>
-                      <Preview value={doc} type={schema.get(doc._type)} />
-                    </Box>
-                    {status === 'EXISTS' ? (
-                      <Badge muted padding={2} fontSize={1} tone="caution" mode="outline">
-                        Update
-                      </Badge>
-                    ) : (
-                      <Badge muted padding={2} fontSize={1} tone="positive" mode="outline">
-                        Create
-                      </Badge>
+                {payload.map(({doc, include, status}, index) => (
+                  <React.Fragment key={doc._id}>
+                    <Flex align="center">
+                      <Checkbox checked={include} onChange={() => handleCheckbox(doc._id)} />
+                      <Box style={{flex: 1}} paddingX={3}>
+                        <Preview value={doc} type={schema.get(doc._type)} />
+                      </Box>
+                      {status === 'EXISTS' ? (
+                        <Badge muted padding={2} fontSize={1} tone="caution" mode="outline">
+                          Update
+                        </Badge>
+                      ) : (
+                        <Badge muted padding={2} fontSize={1} tone="positive" mode="outline">
+                          Create
+                        </Badge>
+                      )}
+                    </Flex>
+                    {doc?.extension === 'svg' && index === firstSvgIndex && (
+                      <Card padding={3} radius={2} shadow={1} tone="caution">
+                        <Text size={1}>
+                          Due to how SVGs are sanitized when first uploaded, SVG assets may have new{' '}
+                          <code>_id</code>'s once migrated. The newly generated <code>_id</code> will
+                          be the same in each migration, but it will never be the same{' '}
+                          <code>_id</code> as the first time this Asset was uploaded.
+                        </Text>
+                      </Card>
                     )}
-                  </Flex>
+                  </React.Fragment>
                 ))}
               </Stack>
             )}

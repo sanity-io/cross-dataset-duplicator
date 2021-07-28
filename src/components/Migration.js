@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from 'react'
 import PropTypes from 'prop-types'
 import {useSecrets, SettingsView} from 'sanity-secrets'
-import {ThemeProvider, Flex, Box, Spinner} from '@sanity/ui'
+import {ThemeProvider, Flex, Box, Spinner, Dialog, Text} from '@sanity/ui'
 
 import MigrationQuery from './MigrationQuery'
 import MigrationTool from './MigrationTool'
+import ResetSecret from './ResetSecret'
 
 // Check for auth secret (required for asset uploads)
 const secretNamespace = 'Migration'
@@ -35,21 +36,24 @@ export default function Migration({mode, docs}) {
     )
   }
 
-  if (!loading && showSecretsPrompt) {
+  if ((!loading && showSecretsPrompt) || !secrets?.bearerToken) {
     return (
-      <SettingsView
-        namespace={secretNamespace}
-        keys={secretConfigKeys}
-        // eslint-disable-next-line react/jsx-no-bind
-        onClose={() => setShowSecretsPrompt(false)}
-      />
+      <ThemeProvider>
+        <SettingsView
+          namespace={secretNamespace}
+          keys={secretConfigKeys}
+          // eslint-disable-next-line react/jsx-no-bind
+          onClose={() => setShowSecretsPrompt(false)}
+        />
+      </ThemeProvider>
     )
   }
 
   if (mode === 'tool') {
     return (
       <ThemeProvider>
-        <MigrationQuery token={secrets.bearerToken} />
+        <MigrationQuery token={secrets?.bearerToken} />
+        <ResetSecret />
       </ThemeProvider>
     )
   }
@@ -60,7 +64,7 @@ export default function Migration({mode, docs}) {
 
   return (
     <ThemeProvider>
-      <MigrationTool docs={docs} token={secrets.bearerToken} />
+      <MigrationTool docs={docs} token={secrets?.bearerToken} />
     </ThemeProvider>
   )
 }
