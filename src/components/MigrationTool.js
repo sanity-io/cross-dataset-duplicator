@@ -1,9 +1,10 @@
 /* eslint-disable react/jsx-no-bind */
 import PropTypes from 'prop-types'
 import React, {useState, useMemo, useEffect} from 'react'
-import pLimit from 'p-limit'
+import mapLimit from 'async/mapLimit'
+import asyncify from 'async/asyncify';
 import {extract, extractWithPath} from '@sanity/mutator'
-import { dset } from 'dset';
+import {dset} from 'dset'
 import {
   Card,
   Container,
@@ -205,54 +206,57 @@ export default function MigrationTool({docs = [], token = ``}) {
     const transactionDocs = []
     const svgMaps = []
 
-    // Prepare pLimit to rate limit + prevent issues with concurrency
-    const limit = pLimit(3)
+    // Upload assets and then add to transaction
+    async function fetchDoc(doc) {
+      if (['sanity.imageAsset', 'sanity.fileAsset'].includes(doc._type)) {
+        // Download and upload asset
+        // Get the *original* image with this dlRaw param to create the same determenistic _id
+        const uploadType = doc._type.split('.').pop().replace('Asset', '')
+        const downloadUrl = uploadType === 'image' ? `${doc.url}?dlRaw=true` : doc.url
+        const downloadConfig =
+          uploadType === 'image' ? {headers: {Authorization: token ? `Bearer ${token}` : ``}} : {}
 
-    // Upload assets before the transaction
-    const payloadPromises = payload
-      .filter((item) => item.include)
-      .map(({doc}) => {
-        return limit(async () => {
-          if (['sanity.imageAsset', 'sanity.fileAsset'].includes(doc._type)) {
-            // Download and upload asset
-            // Get the *original* image with this dlRaw param to create the same determenistic _id
-            const uploadType = doc._type.split('.').pop().replace('Asset', '')
-            const downloadUrl = uploadType === 'image' ? `${doc.url}?dlRaw=true` : doc.url
-            const downloadConfig =
-              uploadType === 'image'
-                ? {headers: {Authorization: token ? `Bearer ${token}` : ``}}
-                : {}
+        await fetch(downloadUrl, downloadConfig).then(async (res) => {
+          const assetData = await res.blob()
 
-            await fetch(downloadUrl, downloadConfig).then(async (res) => {
-              const assetData = await res.blob()
+          const options = {filename: doc.originalFilename}
+          const assetDoc = await destinationClient.assets.upload(uploadType, assetData, options)
 
-              const options = {filename: doc.originalFilename}
-              const assetDoc = await destinationClient.assets.upload(uploadType, assetData, options)
-
-              // SVG _id's need remapping before migration
-              if (doc?.extension === 'svg') {
-                svgMaps.push({old: doc._id, new: assetDoc._id})
-              }
-
-              transactionDocs.push(assetDoc)
-            })
-
-            currentProgress += 1
-            setMessage({
-              text: `Migrating ${currentProgress}/${assetsCount} ${
-                assetsCount === 1 ? `Assets` : `Assets`
-              }`,
-            })
-
-            return setProgress([currentProgress, assetsCount])
+          // SVG _id's need remapping before migration
+          if (doc?.extension === 'svg') {
+            svgMaps.push({old: doc._id, new: assetDoc._id})
           }
 
-          return transactionDocs.push(doc)
+          transactionDocs.push(assetDoc)
         })
-      })
+
+        currentProgress += 1
+        setMessage({
+          text: `Migrating ${currentProgress}/${assetsCount} ${
+            assetsCount === 1 ? `Assets` : `Assets`
+          }`,
+        })
+
+        return setProgress([currentProgress, assetsCount])
+      }
+
+      return transactionDocs.push(doc)
+    }
 
     // Promises are limited to three at once
-    await Promise.all(payloadPromises)
+    const result = new Promise((resolve, reject) => {
+      const payloadIncludedDocs = payload.filter((item) => item.include).map((item) => item.doc)
+
+      mapLimit(payloadIncludedDocs, 3, asyncify(fetchDoc), (err) => {
+        if (err) {
+          reject(new Error("Migration Failed"))
+        }
+
+        resolve()
+      })
+    })
+
+    await result
 
     // Remap SVG references to new _id's
     const transactionDocsMapped = transactionDocs.map((doc) => {
@@ -266,11 +270,11 @@ export default function MigrationTool({docs = [], token = ``}) {
       // For every found _ref, search for an SVG asset _id and update
       references.forEach((ref) => {
         const newRefValue = svgMaps.find((asset) => asset.old === ref.value)?.new
-        
+
         if (newRefValue) {
           const refPath = ref.path.join('.')
 
-          dset(doc, refPath, newRefValue);
+          dset(doc, refPath, newRefValue)
         }
       })
 
@@ -325,7 +329,7 @@ export default function MigrationTool({docs = [], token = ``}) {
                 position: 'sticky',
                 top: 0,
                 zIndex: 100,
-                backgroundColor: `rgba(255,255,255,0.9)`,
+                backgroundColor: `rgba(255,255,255,0.95)`,
               }}
             >
               <Stack space={3}>
@@ -410,8 +414,8 @@ export default function MigrationTool({docs = [], token = ``}) {
                       <Card padding={3} radius={2} shadow={1} tone="caution">
                         <Text size={1}>
                           Due to how SVGs are sanitized when first uploaded, SVG assets may have new{' '}
-                          <code>_id</code>'s once migrated. The newly generated <code>_id</code> will
-                          be the same in each migration, but it will never be the same{' '}
+                          <code>_id</code>'s once migrated. The newly generated <code>_id</code>{' '}
+                          will be the same in each migration, but it will never be the same{' '}
                           <code>_id</code> as the first time this Asset was uploaded.
                         </Text>
                       </Card>
