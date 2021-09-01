@@ -1,6 +1,6 @@
 {
   "name": "sanity-plugin-migration",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Empower content editors to migrate Documents and Assets between Sanity Datasets from inside Sanity Studio",
   "main": "lib/index.js",
   "scripts": {
@@ -33,7 +33,7 @@
     "@sanity/ui": "^0.34.6",
     "dset": "^3.1.0",
     "husky": "^7.0.1",
-    "p-limit": "^3.1.0",
+    "p-limit": "^4.0.0",
     "prop-types": "15.7.2",
     "sanity-secrets": "^0.0.5",
     "styled-components": "^5.3.0"

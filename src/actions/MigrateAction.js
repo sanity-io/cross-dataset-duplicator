@@ -13,6 +13,7 @@ export default function MigrateAction({draft, published, onComplete}) {
     label: 'Migrate',
     dialog: dialogOpen && published && {
       type: 'modal',
+      title: 'Migrate',
       content: <Migration docs={[published]} mode="action" />,
       onClose: () => onComplete(),
     },
