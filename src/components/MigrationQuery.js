@@ -24,7 +24,7 @@ export default function MigrationQuery({token}) {
 
   // Auto-load initial textinput value
   useEffect(() => {
-    if (!docs.length && value) {
+    if (!docs?.length && value) {
       handleSubmit()
     }
   }, [])

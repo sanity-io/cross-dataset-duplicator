@@ -3,7 +3,7 @@ import config from 'config:migration'
 
 import MigrateAction from './MigrateAction'
 
-export default function resolveDocumentActions(props) {
+export default function resolveDocumentActions(props) { 
   const migrationTypes = config?.types ?? []
   const defaultActions = defaultResolve(props)
 

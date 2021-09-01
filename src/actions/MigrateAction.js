@@ -11,14 +11,12 @@ export default function MigrateAction({draft, published, onComplete}) {
     disabled: draft,
     title: draft ? `Document must be Published to Migrate` : null,
     label: 'Migrate',
-    dialog: dialogOpen && {
+    dialog: dialogOpen && published && {
       type: 'modal',
       content: <Migration docs={[published]} mode="action" />,
       onClose: () => onComplete(),
     },
-    onHandle: () => {
-      setDialogOpen(true)
-    },
+    onHandle: () => setDialogOpen(true),
     icon: LaunchIcon,
   }
 }

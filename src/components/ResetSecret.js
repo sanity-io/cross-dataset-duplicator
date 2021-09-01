@@ -13,7 +13,7 @@ export default function ResetSecret() {
   return (
     <Flex align="center" justify="flex-end" paddingX={[2, 2, 2, 5]} paddingY={5}>
       <Button
-        text="Reset Secrets"
+        text="Reset Secret"
         onClick={() => handleClick()}
         mode="ghost"
         tone="critical"

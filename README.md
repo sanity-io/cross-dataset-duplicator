@@ -24,6 +24,13 @@ The Migration Document Action allows you to migrate an individual Document.
 
 ![2021-07-19 15 34 21](https://user-images.githubusercontent.com/9684022/126177655-05074748-6212-4ff1-aa1f-67a535c02101.gif)
 
+**Note:** If your Studio registerd Document Actions, the plugin config will be overruled. You may need to look at how the [plugin adds the Action](https://github.com/SimeonGriggs/sanity-plugin-migration/blob/main/src/actions/index.js), and import it into your own configuration:
+
+```
+import {MigrateAction} from 'sanity-plugin-migration'
+import config from 'config:migration'
+```
+
 ## Required Setup
 
 ### 1. Spaces

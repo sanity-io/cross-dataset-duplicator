@@ -1,8 +1,8 @@
 {
   "name": "sanity-plugin-migration",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Empower content editors to migrate Documents and Assets between Sanity Datasets from inside Sanity Studio",
-  "main": "lib/components/Migration.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "sanipack build",
     "watch": "sanipack build --watch",

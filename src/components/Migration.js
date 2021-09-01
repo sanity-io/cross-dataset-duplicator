@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import PropTypes from 'prop-types'
 import {useSecrets, SettingsView} from 'sanity-secrets'
-import {ThemeProvider, Flex, Box, Spinner, Dialog, Text} from '@sanity/ui'
+import {ThemeProvider, Flex, Box, Spinner} from '@sanity/ui'
 
 import MigrationQuery from './MigrationQuery'
 import MigrationTool from './MigrationTool'
@@ -58,7 +58,7 @@ export default function Migration({mode, docs}) {
     )
   }
 
-  if (!docs.length) {
+  if (!docs?.length) {
     return <div>No docs passed into Migration Tool</div>
   }
 
