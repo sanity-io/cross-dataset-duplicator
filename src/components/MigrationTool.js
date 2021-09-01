@@ -2,7 +2,7 @@
 import PropTypes from 'prop-types'
 import React, {useState, useMemo, useEffect} from 'react'
 import mapLimit from 'async/mapLimit'
-import asyncify from 'async/asyncify';
+import asyncify from 'async/asyncify'
 import {extract, extractWithPath} from '@sanity/mutator'
 import {dset} from 'dset'
 import {
@@ -29,14 +29,24 @@ const clientConfig = {apiVersion: `2021-05-19`}
 const originClient = sanityClient.withConfig(clientConfig)
 
 // Recursively fetch Documents from an array of _id's and their references
-async function getDocumentsInArray(arr, depth = 1) {
+// Heavy use of Set is to avoid recursively querying for id's already in the payload
+async function getDocumentsInArray(fetchIds = [], currentIds = new Set()) {
   const collection = []
+  const currentIdsSet = new Set(currentIds)
 
   // Find initial docs
-  const data = await originClient.fetch(`*[_id in $arr]`, {arr})
+  const data = await originClient.fetch(`*[_id in $fetchIds]`, {fetchIds})
 
-  if (data?.length) {
+  if (!data?.length) return collection
+
+  // Find new ids in the returned data
+  const newDataIds = new Set(
+    data.map((dataDoc) => dataDoc._id).filter((id) => !currentIdsSet.has(id))
+  )
+
+  if (newDataIds.size) {
     collection.push(...data)
+    currentIdsSet.add(...newDataIds)
 
     // Check new data for more references
     await Promise.all(
@@ -44,24 +54,31 @@ async function getDocumentsInArray(arr, depth = 1) {
         const expr = `.._ref`
         const references = extract(expr, doc)
 
-        if (references?.length) {
-          const referenceDocs = await getDocumentsInArray(references, depth + 1)
-          collection.push(...referenceDocs)
+        if (references.length) {
+          // Check if these references are already in the Collection
+          const newReferenceIds = new Set(references.filter((refId) => !currentIdsSet.has(refId)))
+
+          if (newReferenceIds.size) {
+            currentIdsSet.add(...newReferenceIds)
+
+            // Recusive query for new documents
+            const referenceDocs = await getDocumentsInArray(
+              Array.from(newReferenceIds),
+              currentIdsSet
+            )
+
+            if (referenceDocs) {
+              collection.push(...referenceDocs)
+            }
+          }
         }
       })
     )
   }
 
-  // Filter to uniques
-  const uniqueCollection = collection.reduce((acc, cur) => {
-    if (acc.find((doc) => doc._id === cur._id)) {
-      return acc
-    }
-
-    return [...acc, cur]
-  }, [])
-
-  return uniqueCollection
+  // One final unique filter
+  // (possibly less importing, it was *querying* uniques that was the issue)
+  return Array.from(new Set(collection))
 }
 
 export default function MigrationTool({docs = [], token = ``}) {
@@ -249,7 +266,7 @@ export default function MigrationTool({docs = [], token = ``}) {
 
       mapLimit(payloadIncludedDocs, 3, asyncify(fetchDoc), (err) => {
         if (err) {
-          reject(new Error("Migration Failed"))
+          reject(new Error('Migration Failed'))
         }
 
         resolve()
