@@ -69,7 +69,7 @@ You can reveal the token belonging to your user account with `sanity debug --sec
 
 ## Roadmap
 
-- Save predefined GROQ queries in the Tool to make bulk repeated Migrations simpler
-- More UI affordances eg "Only Migrate New", "Only Migrate Documents", etc.
-- Config options for allowed migrations (eg Dev -> Staging but not Dev -> Live)
-- Config options for permissions/user role checks
+🔜 Save predefined GROQ queries in the Tool to make bulk repeated Migrations simpler
+✅ More UI affordances eg "Only Migrate New", "Only Migrate Documents", etc.
+🔜 Config options for allowed migrations (eg Dev -> Staging but not Dev -> Live)
+🔜 Config options for permissions/user role checks
