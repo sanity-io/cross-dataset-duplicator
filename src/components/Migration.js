@@ -6,6 +6,7 @@ import {ThemeProvider, Flex, Box, Spinner} from '@sanity/ui'
 import MigrationQuery from './MigrationQuery'
 import MigrationTool from './MigrationTool'
 import ResetSecret from './ResetSecret'
+import Feedback from './Feedback'
 
 // Check for auth secret (required for asset uploads)
 const secretNamespace = 'Migration'
@@ -17,12 +18,19 @@ const secretConfigKeys = [
 ]
 
 export default function Migration({mode, docs}) {
-  const {loading, secrets} = useSecrets(secretNamespace)
+  const secretsData = useSecrets(secretNamespace)
+  const {loading, secrets = {}}  = secretsData ?? {}
   const [showSecretsPrompt, setShowSecretsPrompt] = useState(false)
 
   useEffect(() => {
-    setShowSecretsPrompt(!secrets?.bearerToken)
+    if (secrets) {
+      setShowSecretsPrompt(!secrets?.bearerToken)
+    }
   }, [secrets])
+
+  if (!secretsData) {
+    return <Feedback>Could not query for Secrets. You may have insufficient permissions on your account.</Feedback>
+  }
 
   if (loading) {
     return (
@@ -59,7 +67,7 @@ export default function Migration({mode, docs}) {
   }
 
   if (!docs?.length) {
-    return <div>No docs passed into Migration Tool</div>
+    return <Feedback>No docs passed into Migration Tool</Feedback>
   }
 
   return (

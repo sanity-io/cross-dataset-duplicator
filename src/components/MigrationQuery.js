@@ -9,8 +9,8 @@ const apiVersion = `2021-05-19`
 const originClient = sanityClient.withConfig({apiVersion})
 
 export default function MigrationQuery({token}) {
-  // const [value, setValue] = useState(`*[_type == "article"]`)
-  const [value, setValue] = useState(``)
+  const [value, setValue] = useState(`*[_type == "article"]`)
+  // const [value, setValue] = useState(``)
   const [docs, setDocs] = useState([])
 
   function handleSubmit(e) {

@@ -23,10 +23,19 @@ import sanityClient from 'part:@sanity/base/client'
 import Preview from 'part:@sanity/base/preview'
 import schema from 'part:@sanity/base/schema'
 import config from 'config:sanity'
+import {typeIsAsset} from '../helpers'
+import SelectButtons from './SelectButtons'
 
 // Prepare origin (this Studio) client
 const clientConfig = {apiVersion: `2021-05-19`}
 const originClient = sanityClient.withConfig(clientConfig)
+
+const stickyStyles = {
+  position: 'sticky',
+  top: 0,
+  zIndex: 100,
+  backgroundColor: `rgba(255,255,255,0.95)`,
+}
 
 // Recursively fetch Documents from an array of _id's and their references
 // Heavy use of Set is to avoid recursively querying for id's already in the payload
@@ -209,9 +218,7 @@ export default function MigrationTool({docs = [], token = ``}) {
   async function handleMigrate() {
     setIsMigrating(true)
 
-    const assetsCount = payload.filter(
-      ({doc, include}) => include && ['sanity.imageAsset', 'sanity.fileAsset'].includes(doc._type)
-    ).length
+    const assetsCount = payload.filter(({doc, include}) => include && typeIsAsset(doc._type)).length
     let currentProgress = 0
     setProgress([currentProgress, assetsCount])
 
@@ -225,7 +232,7 @@ export default function MigrationTool({docs = [], token = ``}) {
 
     // Upload assets and then add to transaction
     async function fetchDoc(doc) {
-      if (['sanity.imageAsset', 'sanity.fileAsset'].includes(doc._type)) {
+      if (typeIsAsset(doc._type)) {
         // Download and upload asset
         // Get the *original* image with this dlRaw param to create the same determenistic _id
         const uploadType = doc._type.split('.').pop().replace('Asset', '')
@@ -320,6 +327,7 @@ export default function MigrationTool({docs = [], token = ``}) {
     setDestinationValue(e.currentTarget.value)
   }
 
+
   const payloadCount = payload.length
   const firstSvgIndex = payload.findIndex(({doc}) => doc.extension === 'svg')
   const selectedCount = payload.filter((item) => item.include).length
@@ -339,17 +347,8 @@ export default function MigrationTool({docs = [], token = ``}) {
       <Card>
         <Stack>
           <>
-            <Card
-              borderBottom
-              padding={4}
-              style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 100,
-                backgroundColor: `rgba(255,255,255,0.95)`,
-              }}
-            >
-              <Stack space={3}>
+            <Card borderBottom padding={4} style={stickyStyles}>
+              <Stack space={4}>
                 <Flex space={3}>
                   <Stack style={{flex: 1}} space={3}>
                     <Label>Migrate from</Label>
@@ -381,11 +380,7 @@ export default function MigrationTool({docs = [], token = ``}) {
                     </Select>
                   </Stack>
                 </Flex>
-                {message?.text && (
-                  <Card padding={3} radius={2} shadow={1} tone={message?.tone ?? 'transparent'}>
-                    <Text size={1}>{message.text}</Text>
-                  </Card>
-                )}
+
                 {isMigrating && (
                   <Card border radius={2}>
                     <Card
@@ -401,15 +396,27 @@ export default function MigrationTool({docs = [], token = ``}) {
                     />
                   </Card>
                 )}
+                {payload.length > 0 && (
+                  <>
+                    <Label>
+                      {`${selectedCount}/${payloadCount} ${
+                        payloadCount === 1 ? `Document` : `Documents`
+                      } selected to migrate`}
+                    </Label>
+                    <SelectButtons payload={payload} setPayload={setPayload} />
+                  </>
+                )}
               </Stack>
             </Card>
+            {message?.text && (
+              <Box paddingX={4} paddingTop={4}>
+                <Card padding={3} radius={2} shadow={1} tone={message?.tone ?? 'transparent'}>
+                  <Text size={1}>{message.text}</Text>
+                </Card>
+              </Box>
+            )}
             {payload.length > 0 && (
               <Stack padding={4} space={3}>
-                <Label>
-                  {`${selectedCount}/${payloadCount} ${
-                    payloadCount === 1 ? `Document` : `Documents`
-                  } to Migrate`}
-                </Label>
                 {payload.map(({doc, include, status}, index) => (
                   <React.Fragment key={doc._id}>
                     <Flex align="center">
