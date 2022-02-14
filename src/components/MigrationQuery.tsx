@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react'
 import sanityClient from 'part:@sanity/base/client'
 import schema from 'part:@sanity/base/schema'
 import {Button, Stack, Box, Label, Text, Card, Flex, Grid, Container, TextInput} from '@sanity/ui'
-import {useLocalStorage} from 'usehooks-ts'
+// import {useLocalStorage} from 'usehooks-ts'
 
 import MigrationTool from './MigrationTool'
 
@@ -21,8 +21,8 @@ type MigrationQueryProps = {
 export default function MigrationQuery(props: MigrationQueryProps) {
   const {token} = props
 
-  // const [value, setValue] = useState(`*[_type == "article"]`)
-  const [value, setValue] = useLocalStorage(localStorageKey, ``)
+  const [value, setValue] = useState(``)
+  // const [value, setValue] = useLocalStorage(localStorageKey, ``)
   const [docs, setDocs] = useState([])
 
   function handleSubmit(e?: any) {
