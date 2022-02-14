@@ -9,7 +9,7 @@
     "postinstall": "husky install",
     "prepublishOnly": "pinst --disable && sanipack build && sanipack verify",
     "postpublish": "pinst --enable",
-    "lint": "eslint .",4
+    "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
   "husky": {
