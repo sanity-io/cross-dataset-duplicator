@@ -1,6 +1,6 @@
 {
   "name": "sanity-plugin-migration",
-  "version": "0.0.13",
+  "version": "0.1.0",
   "description": "Empower content editors to migrate Documents and Assets between Sanity Datasets from inside Sanity Studio",
   "main": "lib/index.js",
   "scripts": {
@@ -28,7 +28,7 @@
   "author": "Simeon Griggs <simeon@sanity.io>",
   "license": "MIT",
   "dependencies": {
-    "@sanity/icons": "^1.2.1",
+    "@sanity/icons": "^1.2.5",
     "@sanity/mutator": "^2.13.0",
     "@sanity/ui": "^0.36.15",
     "async": "^3.2.1",
@@ -36,7 +36,8 @@
     "husky": "^7.0.1",
     "prop-types": "15.7.2",
     "sanity-secrets": "^0.0.6",
-    "styled-components": "^5.3.3"
+    "styled-components": "^5.3.3",
+    "usehooks-ts": "^2.3.0"
   },
   "devDependencies": {
     "eslint": "7.31.0",

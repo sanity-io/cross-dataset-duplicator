@@ -6,11 +6,11 @@
   "parts": [
     {
       "implements": "part:@sanity/base/tool",
-      "path": "tool/index.js"
+      "path": "tool/index"
     },
     {
       "implements": "part:@sanity/base/document-actions/resolver",
-      "path": "actions/index.js"
+      "path": "actions/index"
     }
   ]
 }

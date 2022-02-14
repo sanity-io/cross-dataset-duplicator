@@ -1,106 +1,57 @@
 /* eslint-disable react/jsx-no-bind */
-import PropTypes from 'prop-types'
-import React, {useState, useMemo, useEffect} from 'react'
+import React, {useState, useEffect} from 'react'
 import mapLimit from 'async/mapLimit'
 import asyncify from 'async/asyncify'
 import {extract, extractWithPath} from '@sanity/mutator'
 import {dset} from 'dset'
-import {
-  Card,
-  Container,
-  Text,
-  Box,
-  Button,
-  Label,
-  Stack,
-  Select,
-  Flex,
-  Checkbox,
-  Badge,
-} from '@sanity/ui'
+import {Card, Container, Text, Box, Button, Label, Stack, Select, Flex, Checkbox} from '@sanity/ui'
 import {ArrowRightIcon, SearchIcon, LaunchIcon} from '@sanity/icons'
 import sanityClient from 'part:@sanity/base/client'
 import Preview from 'part:@sanity/base/preview'
 import schema from 'part:@sanity/base/schema'
 import config from 'config:sanity'
-import {typeIsAsset} from '../helpers'
+
+import {typeIsAsset, stickyStyles, createInitialMessage} from '../helpers'
+import {getDocumentsInArray} from '../helpers/getDocumentsInArray'
 import SelectButtons from './SelectButtons'
+import StatusBadge from './StatusBadge'
+import Feedback from './Feedback'
+import {SanityDocument} from '../types'
 
 // Prepare origin (this Studio) client
 const clientConfig = {apiVersion: `2021-05-19`}
 const originClient = sanityClient.withConfig(clientConfig)
 
-const stickyStyles = {
-  position: 'sticky',
-  top: 0,
-  zIndex: 100,
-  backgroundColor: `rgba(255,255,255,0.95)`,
+// Create list of dataset options
+// and set initial value of dropdown
+const spacesOptions = config?.__experimental_spaces?.length
+  ? config.__experimental_spaces.map((space) => ({
+      ...space,
+      disabled: space.name === originClient.config().dataset,
+    }))
+  : []
+
+type MigrationToolProps = {
+  docs: SanityDocument[]
+  token: string
 }
 
-// Recursively fetch Documents from an array of _id's and their references
-// Heavy use of Set is to avoid recursively querying for id's already in the payload
-async function getDocumentsInArray(fetchIds = [], currentIds = new Set()) {
-  const collection = []
-  const currentIdsSet = new Set(currentIds)
+export default function MigrationTool(props: MigrationToolProps) {
+  const {docs, token} = props
 
-  // Find initial docs
-  const data = await originClient.fetch(`*[_id in $fetchIds]`, {fetchIds})
-
-  if (!data?.length) return collection
-
-  // Find new ids in the returned data
-  const newDataIds = new Set(
-    data.map((dataDoc) => dataDoc._id).filter((id) => !currentIdsSet.has(id))
+  const [destinationValue, setDestinationValue] = useState(
+    spacesOptions.length ? spacesOptions.filter((space) => !space.disabled)[0].name : ``
   )
-
-  if (newDataIds.size) {
-    collection.push(...data)
-    currentIdsSet.add(...newDataIds)
-
-    // Check new data for more references
-    await Promise.all(
-      data.map(async (doc) => {
-        const expr = `.._ref`
-        const references = extract(expr, doc)
-
-        if (references.length) {
-          // Check if these references are already in the Collection
-          const newReferenceIds = new Set(references.filter((refId) => !currentIdsSet.has(refId)))
-
-          if (newReferenceIds.size) {
-            currentIdsSet.add(...newReferenceIds)
-
-            // Recusive query for new documents
-            const referenceDocs = await getDocumentsInArray(
-              Array.from(newReferenceIds),
-              currentIdsSet
-            )
-
-            if (referenceDocs) {
-              collection.push(...referenceDocs)
-            }
-          }
-        }
-      })
-    )
-  }
-
-  // One final unique filter
-  // (possibly less importing, it was *querying* uniques that was the issue)
-  return Array.from(new Set(collection))
-}
-
-export default function MigrationTool({docs = [], token = ``}) {
-  const [destinationValue, setDestinationValue] = useState(``)
-  const [spaces, setSpaces] = useState([])
   const [message, setMessage] = useState({})
-  const [payload, setPayload] = useState([])
+  const [payload, setPayload] = useState(docs.length ? docs.map(item => ({
+    doc: item,
+    include: true,
+    status: null
+  })) : [])
   const [hasReferences, setHasReferences] = useState(false)
   const [isMigrating, setIsMigrating] = useState(false)
   const [isGathering, setIsGathering] = useState(false)
   const [progress, setProgress] = useState([0, 0])
-
-  const originDataset = useMemo(() => sanityClient.clientConfig.dataset, [])
 
   // Check for References and update message
   useEffect(() => {
@@ -123,53 +74,54 @@ export default function MigrationTool({docs = [], token = ``}) {
 
       setMessage({
         tone: `caution`,
-        text: `${
-          docCount === 1 ? `This Document contains` : `These ${docCount} Documents contain`
-        } ${refsCount === 1 ? `1 Reference` : `${refsCount} References`}. ${
-          refsCount === 1 ? `That Document` : `Those Documents`
-        }  may have References too. If Referenced Documents do not exist at the target Destination, this Migration will fail.`,
+        text: createInitialMessage(docCount, refsCount),
       })
     }
   }, [docs])
-
-  // Create list of dataset options
-  // and set initial value of dropdown
-  useEffect(() => {
-    if (!spaces.length && config?.__experimental_spaces) {
-      const spacesOptions = config.__experimental_spaces.map((space) => ({
-        ...space,
-        disabled: space.name === originDataset,
-      }))
-
-      if (!destinationValue) {
-        setDestinationValue(spacesOptions.filter((space) => !space.disabled)[0].name)
-      }
-
-      setSpaces(spacesOptions)
-    }
-  }, [])
 
   // Re-check payload on destination when value changes
   // (On initial render + select change)
   useEffect(() => {
     updatePayloadStatuses()
-  }, [destinationValue])
+  }, [destinationValue, docs])
 
   // Check if payload documents exist at destination
   async function updatePayloadStatuses(newPayload = []) {
     const payloadActual = newPayload.length ? newPayload : payload
-
+    
     if (!payloadActual.length || !destinationValue) {
       return
     }
 
     const payloadIds = payloadActual.map(({doc}) => doc._id)
-    const destinationClient = sanityClient.withConfig(clientConfig)
-    destinationClient.clientConfig.dataset = destinationValue
-    const destinationData = await destinationClient.fetch(`*[_id in $payloadIds]._id`, {payloadIds})
+    const destinationClient = sanityClient.withConfig({
+      ...clientConfig,
+      dataset: destinationValue,
+    })
+    const destinationData = await destinationClient.fetch(
+      `*[_id in $payloadIds]{ _id, _updatedAt }`,
+      {payloadIds}
+    )
 
     const updatedPayload = payloadActual.map((item) => {
-      item.status = destinationData.includes(item.doc._id) ? 'EXISTS' : ''
+      const existingDoc = destinationData.find((doc) => doc._id === item.doc._id)
+
+      if (existingDoc?._updatedAt && item?.doc?._updatedAt) {
+        if (existingDoc._updatedAt === item.doc._updatedAt) {
+          // Exact same document exists at destination
+          // We don't compare by _rev because that is updated in a transaction
+          item.status = `EXISTS`
+        } else if (existingDoc._updatedAt && item.doc._updatedAt) {
+          item.status =
+            new Date(existingDoc._updatedAt) > new Date(item.doc._updatedAt)
+              ? // Document at destination is newer
+                `OVERWRITE`
+              : // Document at destination is older
+                `UPDATE`
+        }
+      } else {
+        item.status = 'CREATE'
+      }
 
       return item
     })
@@ -194,11 +146,7 @@ export default function MigrationTool({docs = [], token = ``}) {
     setIsGathering(true)
     const docIds = docs.map((doc) => doc._id)
 
-    if (!docIds.length) {
-      return
-    }
-
-    const payloadDocs = await getDocumentsInArray(docIds)
+    const payloadDocs = await getDocumentsInArray(docIds, originClient, null)
 
     // Shape it up
     const payloadShaped = payloadDocs.map((doc) => ({
@@ -273,6 +221,9 @@ export default function MigrationTool({docs = [], token = ``}) {
 
       mapLimit(payloadIncludedDocs, 3, asyncify(fetchDoc), (err) => {
         if (err) {
+          setIsMigrating(false)
+          setMessage({tone: 'critical', text: `Migration Failed`})
+          console.error(err)
           reject(new Error('Migration Failed'))
         }
 
@@ -308,7 +259,9 @@ export default function MigrationTool({docs = [], token = ``}) {
     // Create transaction
     const transaction = destinationClient.transaction()
 
-    transactionDocsMapped.forEach((doc) => transaction.createOrReplace(doc))
+    transactionDocsMapped.forEach((doc) => {
+      transaction.createOrReplace(doc)
+    })
 
     await transaction
       .commit()
@@ -327,20 +280,38 @@ export default function MigrationTool({docs = [], token = ``}) {
     setDestinationValue(e.currentTarget.value)
   }
 
+  if (!spacesOptions.length) {
+    return (
+      <Feedback tone="critical">
+        No Spaces found in <code>sanity.json</code>
+      </Feedback>
+    )
+  }
 
   const payloadCount = payload.length
   const firstSvgIndex = payload.findIndex(({doc}) => doc.extension === 'svg')
-  const selectedCount = payload.filter((item) => item.include).length
+  const selectedDocumentsCount = payload.filter((item) => item.include && !typeIsAsset(item.doc._type)).length
+  const selectedAssetsCount = payload.filter((item) => item.include && typeIsAsset(item.doc._type)).length
+  const selectedTotal = selectedDocumentsCount + selectedAssetsCount
+  const destinationTitle = spacesOptions.find((space) => space.name === destinationValue)?.title
 
-  if (!spaces.length) {
-    return (
-      <Card padding={3} radius={2} shadow={1} tone={'critical'}>
-        <Text size={2}>
-          No Spaces found in <code>sanity.json</code>
-        </Text>
-      </Card>
-    )
-  }
+  const headingText = [
+    selectedTotal,
+    `/`,
+    payloadCount,
+    `Documents and Assets selected`,
+  ].join(` `)
+  
+  const buttonText = [
+    `Migrate`,
+    selectedDocumentsCount,
+    selectedDocumentsCount === 1 ? `Document` : `Documents`,
+    `and`,
+    selectedAssetsCount,
+    selectedAssetsCount === 1 ? `Asset` : `Assets`,
+    `to`,
+    destinationTitle
+  ].join(` `)
 
   return (
     <Container width={1}>
@@ -352,8 +323,8 @@ export default function MigrationTool({docs = [], token = ``}) {
                 <Flex space={3}>
                   <Stack style={{flex: 1}} space={3}>
                     <Label>Migrate from</Label>
-                    <Select readOnly value={spaces.find((space) => space.disabled).name}>
-                      {spaces
+                    <Select readOnly value={spacesOptions.find((space) => space.disabled).name}>
+                      {spacesOptions
                         .filter((space) => space.disabled)
                         .map((space) => (
                           <option key={space.name} value={space.name} disabled={space.disabled}>
@@ -371,7 +342,7 @@ export default function MigrationTool({docs = [], token = ``}) {
                   <Stack style={{flex: 1}} space={3}>
                     <Label>To Destination</Label>
                     <Select onChange={handleChange}>
-                      {spaces.map((space) => (
+                      {spacesOptions.map((space) => (
                         <option key={space.name} value={space.name} disabled={space.disabled}>
                           {space.title ?? space.name}
                           {space.disabled ? ` (Current)` : ``}
@@ -399,9 +370,7 @@ export default function MigrationTool({docs = [], token = ``}) {
                 {payload.length > 0 && (
                   <>
                     <Label>
-                      {`${selectedCount}/${payloadCount} ${
-                        payloadCount === 1 ? `Document` : `Documents`
-                      } selected to migrate`}
+                      {headingText}
                     </Label>
                     <SelectButtons payload={payload} setPayload={setPayload} />
                   </>
@@ -424,15 +393,7 @@ export default function MigrationTool({docs = [], token = ``}) {
                       <Box style={{flex: 1}} paddingX={3}>
                         <Preview value={doc} type={schema.get(doc._type)} />
                       </Box>
-                      {status === 'EXISTS' ? (
-                        <Badge muted padding={2} fontSize={1} tone="caution" mode="outline">
-                          Update
-                        </Badge>
-                      ) : (
-                        <Badge muted padding={2} fontSize={1} tone="positive" mode="outline">
-                          Create
-                        </Badge>
-                      )}
+                      <StatusBadge status={status} />
                     </Flex>
                     {doc?.extension === 'svg' && index === firstSvgIndex && (
                       <Card padding={3} radius={2} shadow={1} tone="caution">
@@ -458,7 +419,7 @@ export default function MigrationTool({docs = [], token = ``}) {
                   icon={SearchIcon}
                   onClick={handleReferences}
                   text="Gather References"
-                  disabled={isMigrating || isGathering}
+                  disabled={isMigrating || !selectedTotal || isGathering}
                 />
               )}
               <Button
@@ -467,10 +428,8 @@ export default function MigrationTool({docs = [], token = ``}) {
                 tone="positive"
                 icon={LaunchIcon}
                 onClick={handleMigrate}
-                text={`Migrate ${selectedCount} ${
-                  selectedCount === 1 ? `Document` : `Documents`
-                } to ${spaces.find((space) => space.name === destinationValue)?.title}`}
-                disabled={isMigrating || !selectedCount || isGathering}
+                text={buttonText}
+                disabled={isMigrating || !selectedTotal || isGathering}
               />
             </Stack>
           </>
@@ -478,9 +437,4 @@ export default function MigrationTool({docs = [], token = ``}) {
       </Card>
     </Container>
   )
-}
-
-MigrationTool.propTypes = {
-  docs: PropTypes.arrayOf(PropTypes.shape({_id: PropTypes.string})).isRequired,
-  token: PropTypes.string.isRequired,
 }

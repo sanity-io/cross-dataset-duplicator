@@ -1,5 +1,5 @@
-import {Button, Flex} from '@sanity/ui'
 import React from 'react'
+import {Button, Flex} from '@sanity/ui'
 import sanityClient from 'part:@sanity/base/client'
 
 const apiVersion = `2021-05-19`

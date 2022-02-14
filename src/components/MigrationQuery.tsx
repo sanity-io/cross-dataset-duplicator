@@ -1,24 +1,41 @@
 import React, {useEffect, useState} from 'react'
-import PropTypes from 'prop-types'
 import sanityClient from 'part:@sanity/base/client'
+import schema from 'part:@sanity/base/schema'
 import {Button, Stack, Box, Label, Text, Card, Flex, Grid, Container, TextInput} from '@sanity/ui'
+import {useLocalStorage} from 'usehooks-ts'
 
 import MigrationTool from './MigrationTool'
 
 const apiVersion = `2021-05-19`
 const originClient = sanityClient.withConfig({apiVersion})
+const localStorageKey = [
+  `migrationQuery`,
+  originClient.config().projectId,
+  originClient.config().dataset,
+].join(`-`)
 
-export default function MigrationQuery({token}) {
-  const [value, setValue] = useState(`*[_type == "article"]`)
-  // const [value, setValue] = useState(``)
+type MigrationQueryProps = {
+  token: string
+}
+
+export default function MigrationQuery(props: MigrationQueryProps) {
+  const {token} = props
+
+  // const [value, setValue] = useState(`*[_type == "article"]`)
+  const [value, setValue] = useLocalStorage(localStorageKey, ``)
   const [docs, setDocs] = useState([])
 
-  function handleSubmit(e) {
+  function handleSubmit(e?: any) {
     if (e) e.preventDefault()
 
     originClient
       .fetch(value)
-      .then((res) => setDocs(res))
+      .then((res) => {
+        // Ensure queried docs are registered to the schema
+        const registeredDocs = res.length ? res.filter((doc) => schema.get(doc._type)) : []
+
+        setDocs(registeredDocs)
+      })
       .catch((err) => console.error(err))
   }
 
@@ -30,7 +47,7 @@ export default function MigrationQuery({token}) {
   }, [])
 
   return (
-    <Container width={3} padding={[0, 0, 0, 5]}>
+    <Container width={[1, 1, 1, 3]} padding={[0, 0, 0, 5]}>
       <Grid columns={[1, 1, 1, 2]} gap={[1, 1, 1, 4]}>
         <Box padding={[2, 2, 2, 0]}>
           <Card padding={4} scheme="dark" radius={3}>
@@ -73,7 +90,7 @@ export default function MigrationQuery({token}) {
         {!docs?.length > 0 && (
           <Container width={1}>
             <Card padding={5}>
-              {value ? `No Documents match this query` : `Start with a valid GROQ query`}
+              {value ? `No Documents registered to the Schema match this query` : `Start with a valid GROQ query`}
             </Card>
           </Container>
         )}
@@ -81,8 +98,4 @@ export default function MigrationQuery({token}) {
       </Grid>
     </Container>
   )
-}
-
-MigrationQuery.propTypes = {
-  token: PropTypes.string.isRequired,
 }

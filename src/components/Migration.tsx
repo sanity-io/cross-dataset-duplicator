@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react'
-import PropTypes from 'prop-types'
 import {useSecrets, SettingsView} from 'sanity-secrets'
 import {ThemeProvider, Flex, Box, Spinner} from '@sanity/ui'
 
@@ -7,19 +6,32 @@ import MigrationQuery from './MigrationQuery'
 import MigrationTool from './MigrationTool'
 import ResetSecret from './ResetSecret'
 import Feedback from './Feedback'
+import {SanityDocument} from '../types'
 
 // Check for auth secret (required for asset uploads)
 const secretNamespace = 'Migration'
 const secretConfigKeys = [
   {
     key: 'bearerToken',
-    title: 'An Auth Token for this studio. Get yours with `sanity debug --secrets`',
+    title: 'An "Auth Token" is required to Migrate assets, and will be used for all Migrations. You can retrieve yours using the Sanity CLI `sanity debug --secrets`.',
+    description: '',
   },
 ]
 
-export default function Migration({mode, docs}) {
+type MigrationProps = {
+  mode: 'tool' | 'action'
+  docs: SanityDocument[]
+}
+
+type Secrets = {
+  bearerToken?: string
+}
+
+export default function Migration(props: MigrationProps) {
+  const {mode = `tool`, docs = []} = props
+
   const secretsData = useSecrets(secretNamespace)
-  const {loading, secrets = {}}  = secretsData ?? {}
+  const {loading, secrets}: {loading: boolean; secrets: Secrets} = secretsData
   const [showSecretsPrompt, setShowSecretsPrompt] = useState(false)
 
   useEffect(() => {
@@ -29,7 +41,11 @@ export default function Migration({mode, docs}) {
   }, [secrets])
 
   if (!secretsData) {
-    return <Feedback>Could not query for Secrets. You may have insufficient permissions on your account.</Feedback>
+    return (
+      <Feedback>
+        Could not query for Secrets. You may have insufficient permissions on your account.
+      </Feedback>
+    )
   }
 
   if (loading) {
@@ -48,6 +64,7 @@ export default function Migration({mode, docs}) {
     return (
       <ThemeProvider>
         <SettingsView
+          title="Token Required"
           namespace={secretNamespace}
           keys={secretConfigKeys}
           // eslint-disable-next-line react/jsx-no-bind
@@ -75,14 +92,4 @@ export default function Migration({mode, docs}) {
       <MigrationTool docs={docs} token={secrets?.bearerToken} />
     </ThemeProvider>
   )
-}
-
-Migration.propTypes = {
-  docs: PropTypes.arrayOf(PropTypes.shape({_id: PropTypes.string})),
-  mode: PropTypes.string,
-}
-
-Migration.defaultProps = {
-  docs: [],
-  mode: 'tool',
 }
