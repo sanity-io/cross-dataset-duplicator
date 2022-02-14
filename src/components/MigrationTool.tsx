@@ -27,7 +27,7 @@ const originClient = sanityClient.withConfig(clientConfig)
 const spacesOptions = config?.__experimental_spaces?.length
   ? config.__experimental_spaces.map((space) => ({
       ...space,
-      disabled: space.name === originClient.config().dataset,
+      disabled: space.name === originClient.clientConfig.dataset,
     }))
   : []
 
@@ -40,7 +40,7 @@ export default function MigrationTool(props: MigrationToolProps) {
   const {docs, token} = props
 
   const [destinationValue, setDestinationValue] = useState(
-    spacesOptions.length ? spacesOptions.filter((space) => !space.disabled)[0].name : ``
+    spacesOptions.length ? spacesOptions.find((space) => space.disabled)?.name : ``
   )
   const [message, setMessage] = useState({})
   const [payload, setPayload] = useState(docs.length ? docs.map(item => ({

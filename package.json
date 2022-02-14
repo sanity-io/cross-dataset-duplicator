@@ -1,6 +1,6 @@
 {
   "name": "sanity-plugin-migration",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Empower content editors to migrate Documents and Assets between Sanity Datasets from inside Sanity Studio",
   "main": "lib/index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "postinstall": "husky install",
     "prepublishOnly": "pinst --disable && sanipack build && sanipack verify",
     "postpublish": "pinst --enable",
-    "lint": "eslint .",
+    "lint": "eslint .",4
     "lint:fix": "eslint . --fix"
   },
   "husky": {
