@@ -4,7 +4,7 @@ Proof of Concept for empowering content editors to migrate Documents and Assets 
 
 ## Important Notes
 
-This plugin is designed as a convenience for Authors to make small, infrequent content migrations between Datasets. Over time, your Datasets could get out of sync and it is therefore recommended to have regularly planned, whole-Dataset migrations using Sanity’s Export/Import tools.
+This plugin is designed as a convenience for Authors to make small, infrequent content migrations between Datasets.
 
 - Proceed with caution as this plugin **can instantly write changes** to Datasets.
 - This plugin has gone through basic testing but may not account for all edge cases.
