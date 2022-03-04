@@ -17,19 +17,7 @@ import SelectButtons from './SelectButtons'
 import StatusBadge from './StatusBadge'
 import Feedback from './Feedback'
 import {SanityDocument} from '../types'
-
-// Prepare origin (this Studio) client
-const clientConfig = {apiVersion: `2021-05-19`}
-const originClient = sanityClient.withConfig(clientConfig)
-
-// Create list of dataset options
-// and set initial value of dropdown
-const spacesOptions = config?.__experimental_spaces?.length
-  ? config.__experimental_spaces.map((space) => ({
-      ...space,
-      disabled: space.name === originClient.clientConfig.dataset,
-    }))
-  : []
+import {clientConfig} from '../helpers/clientConfig'
 
 type MigrationToolProps = {
   docs: SanityDocument[]
@@ -39,15 +27,32 @@ type MigrationToolProps = {
 export default function MigrationTool(props: MigrationToolProps) {
   const {docs, token} = props
 
+  // Prepare origin (this Studio) client
+  // In function-scope so it is up to date on every render
+  const originClient = sanityClient.withConfig(clientConfig)
+
+  // Create list of dataset options
+  // and set initial value of dropdown
+  const spacesOptions = config?.__experimental_spaces?.length
+    ? config.__experimental_spaces.map((space) => ({
+        ...space,
+        disabled: space.name === originClient.clientConfig.dataset,
+      }))
+    : []
+
   const [destinationValue, setDestinationValue] = useState(
-    spacesOptions.length ? spacesOptions.find((space) => space.disabled)?.name : ``
+    spacesOptions.length ? spacesOptions.find((space) => !space.disabled)?.name : ``
   )
   const [message, setMessage] = useState({})
-  const [payload, setPayload] = useState(docs.length ? docs.map(item => ({
-    doc: item,
-    include: true,
-    status: null
-  })) : [])
+  const [payload, setPayload] = useState(
+    docs.length
+      ? docs.map((item) => ({
+          doc: item,
+          include: true,
+          status: null,
+        }))
+      : []
+  )
   const [hasReferences, setHasReferences] = useState(false)
   const [isMigrating, setIsMigrating] = useState(false)
   const [isGathering, setIsGathering] = useState(false)
@@ -88,7 +93,7 @@ export default function MigrationTool(props: MigrationToolProps) {
   // Check if payload documents exist at destination
   async function updatePayloadStatuses(newPayload = []) {
     const payloadActual = newPayload.length ? newPayload : payload
-    
+
     if (!payloadActual.length || !destinationValue) {
       return
     }
@@ -172,8 +177,10 @@ export default function MigrationTool(props: MigrationToolProps) {
 
     setMessage({text: 'Migrating...'})
 
-    const destinationClient = sanityClient.withConfig(clientConfig)
-    destinationClient.clientConfig.dataset = destinationValue
+    const destinationClient = sanityClient.withConfig({
+      ...clientConfig,
+      dataset: destinationValue,
+    })
 
     const transactionDocs = []
     const svgMaps = []
@@ -265,7 +272,7 @@ export default function MigrationTool(props: MigrationToolProps) {
 
     await transaction
       .commit()
-      .then(() => {
+      .then((res) => {
         setMessage({tone: 'positive', text: 'Migration complete!'})
       })
       .catch((err) => {
@@ -283,25 +290,24 @@ export default function MigrationTool(props: MigrationToolProps) {
   if (!spacesOptions.length) {
     return (
       <Feedback tone="critical">
-        No Spaces found in <code>sanity.json</code>
+        <code>__experimental_spaces</code> not found in <code>sanity.json</code>
       </Feedback>
     )
   }
 
   const payloadCount = payload.length
   const firstSvgIndex = payload.findIndex(({doc}) => doc.extension === 'svg')
-  const selectedDocumentsCount = payload.filter((item) => item.include && !typeIsAsset(item.doc._type)).length
-  const selectedAssetsCount = payload.filter((item) => item.include && typeIsAsset(item.doc._type)).length
+  const selectedDocumentsCount = payload.filter(
+    (item) => item.include && !typeIsAsset(item.doc._type)
+  ).length
+  const selectedAssetsCount = payload.filter(
+    (item) => item.include && typeIsAsset(item.doc._type)
+  ).length
   const selectedTotal = selectedDocumentsCount + selectedAssetsCount
   const destinationTitle = spacesOptions.find((space) => space.name === destinationValue)?.title
 
-  const headingText = [
-    selectedTotal,
-    `/`,
-    payloadCount,
-    `Documents and Assets selected`,
-  ].join(` `)
-  
+  const headingText = [selectedTotal, `/`, payloadCount, `Documents and Assets selected`].join(` `)
+
   const buttonText = [
     `Migrate`,
     selectedDocumentsCount,
@@ -310,7 +316,7 @@ export default function MigrationTool(props: MigrationToolProps) {
     selectedAssetsCount,
     selectedAssetsCount === 1 ? `Asset` : `Assets`,
     `to`,
-    destinationTitle
+    destinationTitle,
   ].join(` `)
 
   return (
@@ -369,9 +375,7 @@ export default function MigrationTool(props: MigrationToolProps) {
                 )}
                 {payload.length > 0 && (
                   <>
-                    <Label>
-                      {headingText}
-                    </Label>
+                    <Label>{headingText}</Label>
                     <SelectButtons payload={payload} setPayload={setPayload} />
                   </>
                 )}

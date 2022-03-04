@@ -5,14 +5,14 @@ import {Button, Stack, Box, Label, Text, Card, Flex, Grid, Container, TextInput}
 // import {useLocalStorage} from 'usehooks-ts'
 
 import MigrationTool from './MigrationTool'
+import { clientConfig } from '../helpers/clientConfig'
 
-const apiVersion = `2021-05-19`
-const originClient = sanityClient.withConfig({apiVersion})
-const localStorageKey = [
-  `migrationQuery`,
-  originClient.config().projectId,
-  originClient.config().dataset,
-].join(`-`)
+const originClient = sanityClient.withConfig(clientConfig)
+// const localStorageKey = [
+//   `migrationQuery`,
+//   originClient.config().projectId,
+//   originClient.config().dataset,
+// ].join(`-`)
 
 type MigrationQueryProps = {
   token: string
@@ -20,6 +20,7 @@ type MigrationQueryProps = {
 
 export default function MigrationQuery(props: MigrationQueryProps) {
   const {token} = props
+
 
   const [value, setValue] = useState(``)
   // const [value, setValue] = useLocalStorage(localStorageKey, ``)
