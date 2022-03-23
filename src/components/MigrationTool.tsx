@@ -40,8 +40,8 @@ export default function MigrationTool(props: MigrationToolProps) {
       }))
     : []
 
-  const [destinationValue, setDestinationValue] = useState(
-    spacesOptions.length ? spacesOptions.find((space) => !space.disabled)?.name : ``
+  const [destination, setDestination] = useState(
+    spacesOptions.length ? spacesOptions.find((space) => !space.disabled) : {}
   )
   const [message, setMessage] = useState({})
   const [payload, setPayload] = useState(
@@ -88,20 +88,21 @@ export default function MigrationTool(props: MigrationToolProps) {
   // (On initial render + select change)
   useEffect(() => {
     updatePayloadStatuses()
-  }, [destinationValue, docs])
+  }, [destination, docs])
 
   // Check if payload documents exist at destination
   async function updatePayloadStatuses(newPayload = []) {
     const payloadActual = newPayload.length ? newPayload : payload
 
-    if (!payloadActual.length || !destinationValue) {
+    if (!payloadActual.length || !destination?.name) {
       return
     }
 
     const payloadIds = payloadActual.map(({doc}) => doc._id)
     const destinationClient = sanityClient.withConfig({
       ...clientConfig,
-      dataset: destinationValue,
+      dataset: destination.api.dataset,
+      projectId: destination.api.projectId,
     })
     const destinationData = await destinationClient.fetch(
       `*[_id in $payloadIds]{ _id, _updatedAt }`,
@@ -179,7 +180,8 @@ export default function MigrationTool(props: MigrationToolProps) {
 
     const destinationClient = sanityClient.withConfig({
       ...clientConfig,
-      dataset: destinationValue,
+      dataset: destination.api.dataset,
+      projectId: destination.api.projectId,
     })
 
     const transactionDocs = []
@@ -284,7 +286,7 @@ export default function MigrationTool(props: MigrationToolProps) {
   }
 
   function handleChange(e) {
-    setDestinationValue(e.currentTarget.value)
+    setDestination(spacesOptions.find((space) => space.name === e.currentTarget.value))
   }
 
   if (!spacesOptions.length) {
@@ -304,20 +306,31 @@ export default function MigrationTool(props: MigrationToolProps) {
     (item) => item.include && typeIsAsset(item.doc._type)
   ).length
   const selectedTotal = selectedDocumentsCount + selectedAssetsCount
-  const destinationTitle = spacesOptions.find((space) => space.name === destinationValue)?.title
+  const destinationTitle = destination?.name
+  const hasMultipleProjectIds =
+    new Set(spacesOptions.map((space) => space?.api?.projectId).filter(Boolean)).size > 1
 
   const headingText = [selectedTotal, `/`, payloadCount, `Documents and Assets selected`].join(` `)
 
-  const buttonText = [
-    `Migrate`,
-    selectedDocumentsCount,
-    selectedDocumentsCount === 1 ? `Document` : `Documents`,
-    `and`,
-    selectedAssetsCount,
-    selectedAssetsCount === 1 ? `Asset` : `Assets`,
-    `to`,
-    destinationTitle,
-  ].join(` `)
+  const buttonText = React.useMemo(() => {
+    let text = [`Migrate`]
+
+    if (selectedDocumentsCount > 1) {
+      text.push(selectedDocumentsCount, selectedDocumentsCount === 1 ? `Document` : `Documents`)
+    }
+
+    if (selectedAssetsCount > 1) {
+      text.push(`and`, selectedAssetsCount, selectedAssetsCount === 1 ? `Asset` : `Assets`)
+    }
+
+    if (originClient.clientConfig.projectId !== destination.api.projectId) {
+      text.push(`between Projects`)
+    }
+
+    text.push(`to`, destinationTitle)
+
+    return text.join(` `)
+  }, [selectedDocumentsCount, selectedAssetsCount, destinationTitle])
 
   return (
     <Container width={1}>
@@ -335,7 +348,7 @@ export default function MigrationTool(props: MigrationToolProps) {
                         .map((space) => (
                           <option key={space.name} value={space.name} disabled={space.disabled}>
                             {space.title ?? space.name}
-                            {space.disabled ? ` (Current)` : ``}
+                            {hasMultipleProjectIds ? ` (${space.api.projectId})` : ``}
                           </option>
                         ))}
                     </Select>
@@ -351,6 +364,7 @@ export default function MigrationTool(props: MigrationToolProps) {
                       {spacesOptions.map((space) => (
                         <option key={space.name} value={space.name} disabled={space.disabled}>
                           {space.title ?? space.name}
+                          {hasMultipleProjectIds ? ` (${space.api.projectId})` : ``}
                           {space.disabled ? ` (Current)` : ``}
                         </option>
                       ))}
