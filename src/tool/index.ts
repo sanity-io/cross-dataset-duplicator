@@ -1,13 +1,13 @@
 import {LaunchIcon} from '@sanity/icons'
-import config from 'config:migration'
+import config from 'config:@sanity/cross-dataset-duplicator'
 
-import Migration from '../components/Migration'
+import CrossDatasetDuplicator from '../components/CrossDatasetDuplicator'
 
 export default config?.tool
   ? {
-      title: 'Migration',
-      name: 'migration',
+      title: 'Duplicator',
+      name: 'duplicator',
       icon: LaunchIcon,
-      component: Migration,
+      component: CrossDatasetDuplicator,
     }
   : null
