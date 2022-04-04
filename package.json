@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/@sanity-io/cross-dataset-duplicator.git"
+    "url": "git+ssh://git@github.com/sanity-io/cross-dataset-duplicator.git"
   },
   "keywords": [
     "sanity",
@@ -51,9 +51,9 @@
     "react": "^17.0.0"
   },
   "bugs": {
-    "url": "https://github.com/@sanity-io/cross-dataset-duplicator/issues"
+    "url": "https://github.com/sanity-io/cross-dataset-duplicator/issues"
   },
-  "homepage": "https://github.com/@sanity-io/cross-dataset-duplicator#readme",
+  "homepage": "https://github.com/sanity-io/cross-dataset-duplicator#readme",
   "prettier": {
     "semi": false,
     "printWidth": 100,
