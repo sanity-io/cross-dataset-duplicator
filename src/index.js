@@ -1,7 +1,7 @@
-import MigrateAction from "./actions/MigrateAction";
-import Migration from "./components/Migration";
+import DuplicateToAction from "./actions/DuplicateToAction";
+import CrossDatasetDuplicator from "./components/CrossDatasetDuplicator";
 
 export {
-  MigrateAction,
-  Migration
+  DuplicateToAction,
+  CrossDatasetDuplicator
 }

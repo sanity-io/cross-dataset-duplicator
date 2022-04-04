@@ -1,17 +1,17 @@
-import defaultResolve, {PublishAction} from 'part:@sanity/base/document-actions'
-import config from 'config:migration'
+import defaultResolve, {DuplicateAction} from 'part:@sanity/base/document-actions'
+import config from 'config:@sanity/cross-dataset-duplicator'
 
-import MigrateAction from './MigrateAction'
+import DuplicateToAction from './DuplicateToAction'
 
 export default function resolveDocumentActions(props) { 
-  const migrationTypes = config?.types ?? []
+  const duplicatorTypes = config?.types ?? []
   const defaultActions = defaultResolve(props)
 
-  // Insert 'Migrate' after 'Publish' only on config'd types
-  if (migrationTypes.includes(props?.type)) {
+  // Insert 'Duplicate to...' after 'Duplicate' only on config'd types
+  if (duplicatorTypes.includes(props?.type)) {
     return defaultActions.reduce((acc, cur) => {
-      if (cur === PublishAction) {
-        return [cur, MigrateAction, ...acc]
+      if (cur === DuplicateAction) {
+        return [...acc, cur, DuplicateToAction]
       }
 
       return [...acc, cur]

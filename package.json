@@ -1,6 +1,6 @@
 {
-  "name": "sanity-plugin-migration",
-  "version": "0.2.0",
+  "name": "@sanity/cross-dataset-duplicator",
+  "version": "0.3.0",
   "description": "Empower content editors to migrate Documents and Assets between Sanity Projects and Datasets from inside Sanity Studio",
   "main": "lib/index.js",
   "scripts": {
@@ -19,13 +19,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/SimeonGriggs/sanity-plugin-migration.git"
+    "url": "git+ssh://git@github.com/@sanity-io/cross-dataset-duplicator.git"
   },
   "keywords": [
     "sanity",
     "sanity-plugin"
   ],
-  "author": "Simeon Griggs <simeon@sanity.io>",
+  "author": "Sanity.io <hello@sanity.io>",
   "license": "MIT",
   "dependencies": {
     "@sanity/icons": "^1.2.5",
@@ -36,8 +36,7 @@
     "husky": "^7.0.1",
     "prop-types": "15.7.2",
     "sanity-secrets": "^0.0.6",
-    "styled-components": "^5.3.3",
-    "usehooks-ts": "^2.3.0"
+    "styled-components": "^5.3.3"
   },
   "devDependencies": {
     "eslint": "7.31.0",
@@ -52,9 +51,9 @@
     "react": "^17.0.0"
   },
   "bugs": {
-    "url": "https://github.com/SimeonGriggs/sanity-plugin-migration/issues"
+    "url": "https://github.com/@sanity-io/cross-dataset-duplicator/issues"
   },
-  "homepage": "https://github.com/SimeonGriggs/sanity-plugin-migration#readme",
+  "homepage": "https://github.com/@sanity-io/cross-dataset-duplicator#readme",
   "prettier": {
     "semi": false,
     "printWidth": 100,

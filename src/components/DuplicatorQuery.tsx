@@ -2,28 +2,20 @@ import React, {useEffect, useState} from 'react'
 import sanityClient from 'part:@sanity/base/client'
 import schema from 'part:@sanity/base/schema'
 import {Button, Stack, Box, Label, Text, Card, Flex, Grid, Container, TextInput} from '@sanity/ui'
-// import {useLocalStorage} from 'usehooks-ts'
 
-import MigrationTool from './MigrationTool'
+import DuplicatorTool from './DuplicatorTool'
 import { clientConfig } from '../helpers/clientConfig'
 
 const originClient = sanityClient.withConfig(clientConfig)
-// const localStorageKey = [
-//   `migrationQuery`,
-//   originClient.config().projectId,
-//   originClient.config().dataset,
-// ].join(`-`)
 
-type MigrationQueryProps = {
+type DuplicatorQueryProps = {
   token: string
 }
 
-export default function MigrationQuery(props: MigrationQueryProps) {
+export default function DuplicatorQuery(props: DuplicatorQueryProps) {
   const {token} = props
 
-
   const [value, setValue] = useState(``)
-  // const [value, setValue] = useLocalStorage(localStorageKey, ``)
   const [docs, setDocs] = useState([])
 
   function handleSubmit(e?: any) {
@@ -58,8 +50,7 @@ export default function MigrationQuery(props: MigrationQueryProps) {
               </Box>
               <Box>
                 <Text>
-                  Start with a valid GROQ query to load initial documents. The query will need to
-                  return an Array of Objects.
+                  Start with a valid GROQ query to load initial documents. The query will need to return an Array of Objects.
                 </Text>
               </Box>
               <form onSubmit={handleSubmit}>
@@ -88,14 +79,14 @@ export default function MigrationQuery(props: MigrationQueryProps) {
             </Stack>
           </Card>
         </Box>
-        {!docs?.length > 0 && (
+        {!docs?.length || docs.length < 1 && (
           <Container width={1}>
             <Card padding={5}>
               {value ? `No Documents registered to the Schema match this query` : `Start with a valid GROQ query`}
             </Card>
           </Container>
         )}
-        {docs?.length > 0 && <MigrationTool docs={docs} token={token} />}
+        {docs?.length > 0 && <DuplicatorTool docs={docs} token={token} />}
       </Grid>
     </Container>
   )

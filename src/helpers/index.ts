@@ -9,7 +9,7 @@ export function createInitialMessage(docCount = 0, refsCount = 0) {
     docCount === 1 ? `This Document contains` : `These ${docCount} Documents contain`,
     refsCount === 1 ? `1 Reference.` : `${refsCount} References.`,
     refsCount === 1 ? `That Document` : `Those Documents`,
-    `may have References too. If referenced Documents do not exist at the target Destination, this Migration will fail.`
+    `may have References too. If referenced Documents do not exist at the target Destination, this transaction will fail.`
   ]
 
   return message.join(` `)

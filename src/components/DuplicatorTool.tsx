@@ -19,12 +19,12 @@ import Feedback from './Feedback'
 import {SanityDocument} from '../types'
 import {clientConfig} from '../helpers/clientConfig'
 
-type MigrationToolProps = {
+type DuplicatorToolProps = {
   docs: SanityDocument[]
   token: string
 }
 
-export default function MigrationTool(props: MigrationToolProps) {
+export default function DuplicatorTool(props: DuplicatorToolProps) {
   const {docs, token} = props
 
   // Prepare origin (this Studio) client
@@ -36,7 +36,7 @@ export default function MigrationTool(props: MigrationToolProps) {
   const spacesOptions = config?.__experimental_spaces?.length
     ? config.__experimental_spaces.map((space) => ({
         ...space,
-        disabled: space.name === originClient.clientConfig.dataset,
+        disabled: space.api.dataset === originClient.config().dataset,
       }))
     : []
 
@@ -54,7 +54,7 @@ export default function MigrationTool(props: MigrationToolProps) {
       : []
   )
   const [hasReferences, setHasReferences] = useState(false)
-  const [isMigrating, setIsMigrating] = useState(false)
+  const [isDuplicating, setIsDuplicating] = useState(false)
   const [isGathering, setIsGathering] = useState(false)
   const [progress, setProgress] = useState([0, 0])
 
@@ -157,7 +157,7 @@ export default function MigrationTool(props: MigrationToolProps) {
     // Shape it up
     const payloadShaped = payloadDocs.map((doc) => ({
       doc,
-      // Include this in the migration?
+      // Include this in the transaction?
       include: true,
       // Does it exist at the destination?
       status: '',
@@ -168,15 +168,15 @@ export default function MigrationTool(props: MigrationToolProps) {
     setIsGathering(false)
   }
 
-  // Migrate payload to destination dataset
-  async function handleMigrate() {
-    setIsMigrating(true)
+  // Duplicate payload to destination dataset
+  async function handleDuplicate() {
+    setIsDuplicating(true)
 
     const assetsCount = payload.filter(({doc, include}) => include && typeIsAsset(doc._type)).length
     let currentProgress = 0
     setProgress([currentProgress, assetsCount])
 
-    setMessage({text: 'Migrating...'})
+    setMessage({text: 'Duplicating...'})
 
     const destinationClient = sanityClient.withConfig({
       ...clientConfig,
@@ -203,7 +203,7 @@ export default function MigrationTool(props: MigrationToolProps) {
           const options = {filename: doc.originalFilename}
           const assetDoc = await destinationClient.assets.upload(uploadType, assetData, options)
 
-          // SVG _id's need remapping before migration
+          // SVG _id's need remapping before transaction
           if (doc?.extension === 'svg') {
             svgMaps.push({old: doc._id, new: assetDoc._id})
           }
@@ -213,7 +213,7 @@ export default function MigrationTool(props: MigrationToolProps) {
 
         currentProgress += 1
         setMessage({
-          text: `Migrating ${currentProgress}/${assetsCount} ${
+          text: `Duplicating ${currentProgress}/${assetsCount} ${
             assetsCount === 1 ? `Assets` : `Assets`
           }`,
         })
@@ -230,10 +230,10 @@ export default function MigrationTool(props: MigrationToolProps) {
 
       mapLimit(payloadIncludedDocs, 3, asyncify(fetchDoc), (err) => {
         if (err) {
-          setIsMigrating(false)
-          setMessage({tone: 'critical', text: `Migration Failed`})
+          setIsDuplicating(false)
+          setMessage({tone: 'critical', text: `Duplication Failed`})
           console.error(err)
-          reject(new Error('Migration Failed'))
+          reject(new Error('Duplication Failed'))
         }
 
         resolve()
@@ -275,13 +275,15 @@ export default function MigrationTool(props: MigrationToolProps) {
     await transaction
       .commit()
       .then((res) => {
-        setMessage({tone: 'positive', text: 'Migration complete!'})
+        setMessage({tone: 'positive', text: 'Duplication complete!'})
+
+        updatePayloadStatuses()
       })
       .catch((err) => {
         setMessage({tone: 'critical', text: err.details.description})
       })
 
-    setIsMigrating(false)
+    setIsDuplicating(false)
     setProgress(0)
   }
 
@@ -306,14 +308,14 @@ export default function MigrationTool(props: MigrationToolProps) {
     (item) => item.include && typeIsAsset(item.doc._type)
   ).length
   const selectedTotal = selectedDocumentsCount + selectedAssetsCount
-  const destinationTitle = destination?.name
+  const destinationTitle = destination?.title ?? destination?.name
   const hasMultipleProjectIds =
     new Set(spacesOptions.map((space) => space?.api?.projectId).filter(Boolean)).size > 1
 
   const headingText = [selectedTotal, `/`, payloadCount, `Documents and Assets selected`].join(` `)
 
   const buttonText = React.useMemo(() => {
-    let text = [`Migrate`]
+    let text = [`Duplicate`]
 
     if (selectedDocumentsCount > 1) {
       text.push(selectedDocumentsCount, selectedDocumentsCount === 1 ? `Document` : `Documents`)
@@ -323,7 +325,7 @@ export default function MigrationTool(props: MigrationToolProps) {
       text.push(`and`, selectedAssetsCount, selectedAssetsCount === 1 ? `Asset` : `Assets`)
     }
 
-    if (originClient.clientConfig.projectId !== destination.api.projectId) {
+    if (originClient.config().projectId !== destination.api.projectId) {
       text.push(`between Projects`)
     }
 
@@ -341,8 +343,8 @@ export default function MigrationTool(props: MigrationToolProps) {
               <Stack space={4}>
                 <Flex space={3}>
                   <Stack style={{flex: 1}} space={3}>
-                    <Label>Migrate from</Label>
-                    <Select readOnly value={spacesOptions.find((space) => space.disabled).name}>
+                    <Label>Duplicate from</Label>
+                    <Select readOnly value={spacesOptions.find((space) => space.disabled)?.name}>
                       {spacesOptions
                         .filter((space) => space.disabled)
                         .map((space) => (
@@ -372,7 +374,7 @@ export default function MigrationTool(props: MigrationToolProps) {
                   </Stack>
                 </Flex>
 
-                {isMigrating && (
+                {isDuplicating && (
                   <Card border radius={2}>
                     <Card
                       style={{
@@ -411,15 +413,15 @@ export default function MigrationTool(props: MigrationToolProps) {
                       <Box style={{flex: 1}} paddingX={3}>
                         <Preview value={doc} type={schema.get(doc._type)} />
                       </Box>
-                      <StatusBadge status={status} />
+                      <StatusBadge status={status} isAsset={typeIsAsset(doc._type)} />
                     </Flex>
                     {doc?.extension === 'svg' && index === firstSvgIndex && (
                       <Card padding={3} radius={2} shadow={1} tone="caution">
                         <Text size={1}>
-                          Due to how SVGs are sanitized when first uploaded, SVG assets may have new{' '}
-                          <code>_id</code>'s once migrated. The newly generated <code>_id</code>{' '}
-                          will be the same in each migration, but it will never be the same{' '}
-                          <code>_id</code> as the first time this Asset was uploaded.
+                          Due to how SVGs are sanitized after first uploaded, duplicated SVG assets may have new{' '}
+                          <code>_id</code>'s at the destination. The newly generated <code>_id</code>{' '}
+                          will be the same in each duplication, but it will never be the same{' '}
+                          <code>_id</code> as the first time this Asset was uploaded. References to the asset will be updated to use the new <code>_id</code>.
                         </Text>
                       </Card>
                     )}
@@ -437,7 +439,7 @@ export default function MigrationTool(props: MigrationToolProps) {
                   icon={SearchIcon}
                   onClick={handleReferences}
                   text="Gather References"
-                  disabled={isMigrating || !selectedTotal || isGathering}
+                  disabled={isDuplicating || !selectedTotal || isGathering}
                 />
               )}
               <Button
@@ -445,9 +447,9 @@ export default function MigrationTool(props: MigrationToolProps) {
                 padding={4}
                 tone="positive"
                 icon={LaunchIcon}
-                onClick={handleMigrate}
+                onClick={handleDuplicate}
                 text={buttonText}
-                disabled={isMigrating || !selectedTotal || isGathering}
+                disabled={isDuplicating || !selectedTotal || isGathering}
               />
             </Stack>
           </>
