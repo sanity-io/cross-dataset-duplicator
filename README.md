@@ -2,14 +2,23 @@
 
 Studio Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
 
-## Important Notes
+## Install
+
+```
+// From the root directory of your studio
+
+sanity install @sanity/cross-dataset-duplicator
+```
+
+### Important Notes
 
 This plugin is designed as a convenience for Authors to make small, infrequent content migrations between Datasets.
 
 - This plugin should be used in conjunction with a reliable backup strategy.
 - Proceed with caution as this plugin can instantly write changes to Datasets.
 - Larger migrations may take more time, especially with Assets. The plugin tries to mitigate this with rate limiting asset uploads to 3 at a time.
-- Before starting a Duplication you can select which Documents and Assets to include. Keep in mind Migrations will likely fail if every Referenced Document or Asset is not already present at the destination Dataset.
+- If an Asset is already present at the destination, there's no need to duplicate it again.
+- Before starting a Duplication you can select which Documents and Assets to include. Migrations will fail if every Referenced Document or Asset is not included in the transaction or already present at the destination Dataset.
 
 ## Tool
 
@@ -39,9 +48,11 @@ Once setup, you will see a dropdown menu next to the Search bar in the Studio wi
 
 The plugin has some configuration options. These can be set by adding a config file to your Studio
 
-```json
+```js
 // ./config/@sanity/cross-dataset-duplicator.json
+```
 
+```json
 {
   "tool": true,
   "types": ["article", "page"]

@@ -1,6 +1,6 @@
 {
   "name": "@sanity/cross-dataset-duplicator",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Empower content editors to migrate Documents and Assets between Sanity Projects and Datasets from inside Sanity Studio",
   "main": "lib/index.js",
   "scripts": {
