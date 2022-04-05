@@ -36,7 +36,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
   const spacesOptions = config?.__experimental_spaces?.length
     ? config.__experimental_spaces.map((space) => ({
         ...space,
-        disabled: space.api.dataset === originClient.config().dataset,
+        disabled: space.api.dataset === originClient.config().dataset && space.api.projectId === originClient.config().projectId,
       }))
     : []
 
