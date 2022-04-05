@@ -1,12 +1,12 @@
-# Sanity Cross Dataset Duplicator
+# Cross Dataset Duplicator
 
-Studio Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
+Sanity Studio Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
 
 ## Install
 
-```
-// From the root directory of your studio
+From the root directory of your studio
 
+```
 sanity install @sanity/cross-dataset-duplicator
 ```
 
