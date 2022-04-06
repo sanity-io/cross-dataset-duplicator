@@ -1,12 +1,12 @@
-# Sanity Cross Dataset Duplicator
+# Cross Dataset Duplicator
 
-Studio Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
+Sanity Studio Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
 
 ## Install
 
-```
-// From the root directory of your studio
+From the root directory of your studio
 
+```
 sanity install @sanity/cross-dataset-duplicator
 ```
 
@@ -87,7 +87,7 @@ Now update your Studio's Document Actions resolver to be something like this
 
 ```js
 import defaultResolve from 'part:@sanity/base/document-actions'
-import {DuplicateToAction} from 'sanity-plugin-migration'
+import {DuplicateToAction} from '@sanity/cross-dataset-duplicator'
 import config from 'config:@sanity/cross-dataset-duplicator'
 
 export default function resolveDocumentActions(props) {
