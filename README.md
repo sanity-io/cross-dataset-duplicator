@@ -87,7 +87,7 @@ Now update your Studio's Document Actions resolver to be something like this
 
 ```js
 import defaultResolve from 'part:@sanity/base/document-actions'
-import {DuplicateToAction} from 'sanity-plugin-migration'
+import {DuplicateToAction} from '@sanity/cross-dataset-duplicator'
 import config from 'config:@sanity/cross-dataset-duplicator'
 
 export default function resolveDocumentActions(props) {
