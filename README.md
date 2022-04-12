@@ -72,6 +72,11 @@ This plugin uses [Sanity Secrets](https://github.com/sanity-io/sanity-studio-sec
 
 You can reveal the token belonging to your user account with `sanity debug --secrets`.
 
+### 4. CORS origins
+
+If you want to duplicate data across different projects, you need to enable CORS for the different hosts. This allows different projects to connect to each other through the project API. CORS origins configuration can be found in your project page, under the API tab.
+
+
 ## Importing the Document Action
 
 In your Studio's `sanity.json` file, look for the `document-actions/resolver` part, it will look like this:
