@@ -4,7 +4,19 @@ import mapLimit from 'async/mapLimit'
 import asyncify from 'async/asyncify'
 import {extract, extractWithPath} from '@sanity/mutator'
 import {dset} from 'dset'
-import {Card, Container, Text, Box, Button, Label, Stack, Select, Flex, Checkbox} from '@sanity/ui'
+import {
+  Card,
+  Container,
+  Text,
+  Box,
+  Button,
+  Label,
+  Stack,
+  Select,
+  Flex,
+  Checkbox,
+  Badge,
+} from '@sanity/ui'
 import {ArrowRightIcon, SearchIcon, LaunchIcon} from '@sanity/icons'
 import sanityClient from 'part:@sanity/base/client'
 import Preview from 'part:@sanity/base/preview'
@@ -21,11 +33,12 @@ import {clientConfig} from '../helpers/clientConfig'
 
 type DuplicatorToolProps = {
   docs: SanityDocument[]
+  draftIds: string[]
   token: string
 }
 
 export default function DuplicatorTool(props: DuplicatorToolProps) {
-  const {docs, token} = props
+  const {docs, draftIds, token} = props
 
   // Prepare origin (this Studio) client
   // In function-scope so it is up to date on every render
@@ -36,7 +49,9 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
   const spacesOptions = config?.__experimental_spaces?.length
     ? config.__experimental_spaces.map((space) => ({
         ...space,
-        disabled: space.api.dataset === originClient.config().dataset && space.api.projectId === originClient.config().projectId,
+        disabled:
+          space.api.dataset === originClient.config().dataset &&
+          space.api.projectId === originClient.config().projectId,
       }))
     : []
 
@@ -50,6 +65,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
           doc: item,
           include: true,
           status: null,
+          hasDraft: draftIds.includes(`drafts.${item._id}`),
         }))
       : []
   )
@@ -153,6 +169,13 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
     const docIds = docs.map((doc) => doc._id)
 
     const payloadDocs = await getDocumentsInArray(docIds, originClient, null)
+    const draftDocs = await getDocumentsInArray(
+      docIds.map((id) => `drafts.${id}`),
+      originClient,
+      null,
+      `{_id}`
+    )
+    const draftDocsIds = new Set(draftDocs.map(({_id}) => _id))
 
     // Shape it up
     const payloadShaped = payloadDocs.map((doc) => ({
@@ -161,6 +184,8 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
       include: true,
       // Does it exist at the destination?
       status: '',
+      // Does it have any drafts?
+      hasDraft: draftDocsIds.has(`drafts.${doc._id}`),
     }))
 
     setPayload(payloadShaped)
@@ -195,7 +220,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
         const uploadType = doc._type.split('.').pop().replace('Asset', '')
         const downloadUrl = uploadType === 'image' ? `${doc.url}?dlRaw=true` : doc.url
         const downloadConfig =
-          uploadType === 'image' ? {headers: {Authorization: token ? `Bearer ${token}` : ``}} : {}
+          uploadType === 'image' ? {headers: {Authorization: `Bearer ${token}`}} : {}
 
         await fetch(downloadUrl, downloadConfig).then(async (res) => {
           const assetData = await res.blob()
@@ -406,22 +431,26 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
             )}
             {payload.length > 0 && (
               <Stack padding={4} space={3}>
-                {payload.map(({doc, include, status}, index) => (
+                {payload.map(({doc, include, status, hasDraft}, index) => (
                   <React.Fragment key={doc._id}>
                     <Flex align="center">
                       <Checkbox checked={include} onChange={() => handleCheckbox(doc._id)} />
-                      <Box style={{flex: 1}} paddingX={3}>
+                      <Box flex={1} paddingX={3}>
                         <Preview value={doc} type={schema.get(doc._type)} />
                       </Box>
-                      <StatusBadge status={status} isAsset={typeIsAsset(doc._type)} />
+                      <Flex items="center" gap={2}>
+                        {hasDraft ? <StatusBadge status="UNPUBLISHED" isAsset={false} /> : null}
+                        <StatusBadge status={status} isAsset={typeIsAsset(doc._type)} />
+                      </Flex>
                     </Flex>
                     {doc?.extension === 'svg' && index === firstSvgIndex && (
                       <Card padding={3} radius={2} shadow={1} tone="caution">
                         <Text size={1}>
-                          Due to how SVGs are sanitized after first uploaded, duplicated SVG assets may have new{' '}
-                          <code>_id</code>'s at the destination. The newly generated <code>_id</code>{' '}
-                          will be the same in each duplication, but it will never be the same{' '}
-                          <code>_id</code> as the first time this Asset was uploaded. References to the asset will be updated to use the new <code>_id</code>.
+                          Due to how SVGs are sanitized after first uploaded, duplicated SVG assets
+                          may have new <code>_id</code>'s at the destination. The newly generated{' '}
+                          <code>_id</code> will be the same in each duplication, but it will never
+                          be the same <code>_id</code> as the first time this Asset was uploaded.
+                          References to the asset will be updated to use the new <code>_id</code>.
                         </Text>
                       </Card>
                     )}

@@ -66,11 +66,11 @@ Options:
 
 ### 3. Authentication Key
 
-To Duplicate the original files of Assets, an additional Authentication Token is required. You will be prompted for this the first time you attempt to use either the Tool or Document Action on any Dataset.
+To Duplicate the original files of Assets, an API Token with Viewer permissions is required. You will be prompted for this the first time you attempt to use either the Tool or Document Action on any Dataset.
 
 This plugin uses [Sanity Secrets](https://github.com/sanity-io/sanity-studio-secrets/) to store the token in the Dataset itself.
 
-You can reveal the token belonging to your user account with `sanity debug --secrets`.
+You can [create API tokens in manage](https://sanity.io/manage)
 
 ### 4. CORS origins
 
