@@ -4,7 +4,7 @@ import schema from 'part:@sanity/base/schema'
 import {Button, Stack, Box, Label, Text, Card, Flex, Grid, Container, TextInput} from '@sanity/ui'
 
 import DuplicatorTool from './DuplicatorTool'
-import { clientConfig } from '../helpers/clientConfig'
+import {clientConfig} from '../helpers/clientConfig'
 
 const originClient = sanityClient.withConfig(clientConfig)
 
@@ -12,11 +12,13 @@ type DuplicatorQueryProps = {
   token: string
 }
 
+const schemaTypes = schema.getTypeNames()
+
 export default function DuplicatorQuery(props: DuplicatorQueryProps) {
   const {token} = props
 
   const [value, setValue] = useState(``)
-  const [docs, setDocs] = useState([])
+  const [initialData, setInitialData] = useState({docs: [], draftIds: []});
 
   function handleSubmit(e?: any) {
     if (e) e.preventDefault()
@@ -25,16 +27,21 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
       .fetch(value)
       .then((res) => {
         // Ensure queried docs are registered to the schema
-        const registeredDocs = res.length ? res.filter((doc) => schema.get(doc._type)) : []
+        const registeredAndPublishedDocs = res.length
+          ? res
+              .filter((doc) => schemaTypes.includes(doc._type))
+              .filter((doc) => !doc._id.startsWith(`drafts.`))
+          : []
+        const initialDraftIds = res.length ? res.filter(doc => doc._id.startsWith(`drafts.`)).map(doc => doc._id) : []
 
-        setDocs(registeredDocs)
+        setInitialData({docs: registeredAndPublishedDocs, draftIds: initialDraftIds})
       })
       .catch((err) => console.error(err))
   }
 
   // Auto-load initial textinput value
   useEffect(() => {
-    if (!docs?.length && value) {
+    if (!initialData.docs?.length && value) {
       handleSubmit()
     }
   }, [])
@@ -50,7 +57,8 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
               </Box>
               <Box>
                 <Text>
-                  Start with a valid GROQ query to load initial documents. The query will need to return an Array of Objects.
+                  Start with a valid GROQ query to load initial documents. The query will need to
+                  return an Array of Objects. Drafts will be removed from the results.
                 </Text>
               </Box>
               <form onSubmit={handleSubmit}>
@@ -79,14 +87,17 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
             </Stack>
           </Card>
         </Box>
-        {!docs?.length || docs.length < 1 && (
-          <Container width={1}>
-            <Card padding={5}>
-              {value ? `No Documents registered to the Schema match this query` : `Start with a valid GROQ query`}
-            </Card>
-          </Container>
-        )}
-        {docs?.length > 0 && <DuplicatorTool docs={docs} token={token} />}
+        {!initialData.docs?.length ||
+          (initialData.docs.length < 1 && (
+            <Container width={1}>
+              <Card padding={5}>
+                {value
+                  ? `No Documents registered to the Schema match this query`
+                  : `Start with a valid GROQ query`}
+              </Card>
+            </Container>
+          ))}
+        {initialData.docs?.length > 0 && <DuplicatorTool docs={initialData.docs} draftIds={initialData.draftIds} token={token} />}
       </Grid>
     </Container>
   )
