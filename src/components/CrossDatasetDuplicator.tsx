@@ -14,7 +14,7 @@ const secretConfigKeys = [
   {
     key: 'bearerToken',
     title:
-      'An "Auth Token" is required to duplicate the original files of assets, and will be used for all Duplications. You can retrieve yours using the Sanity CLI `sanity debug --secrets`.',
+      'An API token with Viewer permissions is required to duplicate the original files of assets, and will be used for all Duplications. Create one at sanity.io/manage',
     description: '',
   },
 ]

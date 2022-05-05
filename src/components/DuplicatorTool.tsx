@@ -195,7 +195,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
         const uploadType = doc._type.split('.').pop().replace('Asset', '')
         const downloadUrl = uploadType === 'image' ? `${doc.url}?dlRaw=true` : doc.url
         const downloadConfig =
-          uploadType === 'image' ? {headers: {Authorization: token ? `Bearer ${token}` : ``}} : {}
+          uploadType === 'image' ? {headers: {Authorization: `Bearer ${token}`}} : {}
 
         await fetch(downloadUrl, downloadConfig).then(async (res) => {
           const assetData = await res.blob()
