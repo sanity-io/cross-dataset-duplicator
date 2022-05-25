@@ -15,7 +15,6 @@ import {
   Select,
   Flex,
   Checkbox,
-  Badge,
 } from '@sanity/ui'
 import {ArrowRightIcon, SearchIcon, LaunchIcon} from '@sanity/icons'
 import sanityClient from 'part:@sanity/base/client'
@@ -65,7 +64,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
           doc: item,
           include: true,
           status: null,
-          hasDraft: draftIds.includes(`drafts.${item._id}`),
+          hasDraft: draftIds?.length ? draftIds.includes(`drafts.${item._id}`) : false,
         }))
       : []
   )
@@ -340,7 +339,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
   const headingText = [selectedTotal, `/`, payloadCount, `Documents and Assets selected`].join(` `)
 
   const buttonText = React.useMemo(() => {
-    let text = [`Duplicate`]
+    const text = [`Duplicate`]
 
     if (selectedDocumentsCount > 1) {
       text.push(selectedDocumentsCount, selectedDocumentsCount === 1 ? `Document` : `Documents`)
