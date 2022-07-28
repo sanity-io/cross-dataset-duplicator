@@ -1,15 +1,24 @@
-# Sanity Cross Dataset Duplicator
+# Cross Dataset Duplicator
 
-Studio Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
+Sanity Studio Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
 
-## Important Notes
+## Install
+
+From the root directory of your studio
+
+```
+sanity install @sanity/cross-dataset-duplicator
+```
+
+### Important Notes
 
 This plugin is designed as a convenience for Authors to make small, infrequent content migrations between Datasets.
 
 - This plugin should be used in conjunction with a reliable backup strategy.
 - Proceed with caution as this plugin can instantly write changes to Datasets.
 - Larger migrations may take more time, especially with Assets. The plugin tries to mitigate this with rate limiting asset uploads to 3 at a time.
-- Before starting a Duplication you can select which Documents and Assets to include. Keep in mind Migrations will likely fail if every Referenced Document or Asset is not already present at the destination Dataset.
+- If an Asset is already present at the destination, there's no need to duplicate it again.
+- Before starting a Duplication you can select which Documents and Assets to include. Migrations will fail if every Referenced Document or Asset is not included in the transaction or already present at the destination Dataset.
 
 ## Tool
 
@@ -39,9 +48,11 @@ Once setup, you will see a dropdown menu next to the Search bar in the Studio wi
 
 The plugin has some configuration options. These can be set by adding a config file to your Studio
 
-```json
+```js
 // ./config/@sanity/cross-dataset-duplicator.json
+```
 
+```json
 {
   "tool": true,
   "types": ["article", "page"]
@@ -55,11 +66,16 @@ Options:
 
 ### 3. Authentication Key
 
-To Duplicate the original files of Assets, an additional Authentication Token is required. You will be prompted for this the first time you attempt to use either the Tool or Document Action on any Dataset.
+To Duplicate the original files of Assets, an API Token with Viewer permissions is required. You will be prompted for this the first time you attempt to use either the Tool or Document Action on any Dataset.
 
 This plugin uses [Sanity Secrets](https://github.com/sanity-io/sanity-studio-secrets/) to store the token in the Dataset itself.
 
-You can reveal the token belonging to your user account with `sanity debug --secrets`.
+You can [create API tokens in manage](https://sanity.io/manage)
+
+### 4. CORS origins
+
+If you want to duplicate data across different projects, you need to enable CORS for the different hosts. This allows different projects to connect to each other through the project API. CORS origins configuration can be found in your project page, under the API tab.
+
 
 ## Importing the Document Action
 
@@ -76,7 +92,7 @@ Now update your Studio's Document Actions resolver to be something like this
 
 ```js
 import defaultResolve from 'part:@sanity/base/document-actions'
-import {DuplicateToAction} from 'sanity-plugin-migration'
+import {DuplicateToAction} from '@sanity/cross-dataset-duplicator'
 import config from 'config:@sanity/cross-dataset-duplicator'
 
 export default function resolveDocumentActions(props) {

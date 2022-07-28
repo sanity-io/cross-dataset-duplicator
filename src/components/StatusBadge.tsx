@@ -7,6 +7,7 @@ type StatusTones = {
   OVERWRITE: BadgeTone
   UPDATE: BadgeTone
   CREATE: BadgeTone
+  UNPUBLISHED: BadgeTone
 }
 
 const documentTones: StatusTones = {
@@ -14,6 +15,7 @@ const documentTones: StatusTones = {
   OVERWRITE: `critical`,
   UPDATE: `caution`,
   CREATE: `positive`,
+  UNPUBLISHED: `caution`,
 }
 
 const assetTones: StatusTones = {
@@ -21,6 +23,7 @@ const assetTones: StatusTones = {
   OVERWRITE: `critical`,
   UPDATE: `critical`,
   CREATE: `positive`,
+  UNPUBLISHED: `default`
 }
 
 type messageTypes = {
@@ -28,6 +31,7 @@ type messageTypes = {
   OVERWRITE: string
   UPDATE: string
   CREATE: string
+  UNPUBLISHED: string
 }
 
 const documentMessages: messageTypes = {
@@ -41,6 +45,7 @@ const documentMessages: messageTypes = {
   UPDATE: `An older version of this document exists at the Destination, and it will be overwritten with this version.`,
   // Document at destination doesn't exist
   CREATE: `This document will be created at the destination.`,
+  UNPUBLISHED: `A Draft version of this Document exists in this Dataset, but only the Published version will be duplicated to the destination.`
 }
 
 const assetMessages: messageTypes = {
@@ -48,6 +53,7 @@ const assetMessages: messageTypes = {
   OVERWRITE: `This Asset already exists at the Destination`,
   UPDATE: `This Asset already exists at the Destination`,
   CREATE: `This Asset does not yet exist at the Destination`,
+  UNPUBLISHED: ``,
 }
 
 const assetStatus: messageTypes = {
@@ -55,10 +61,11 @@ const assetStatus: messageTypes = {
   OVERWRITE: `RE-UPLOAD`,
   UPDATE: `RE-UPLOAD`,
   CREATE: `UPLOAD`,
+  UNPUBLISHED: ``,
 }
 
 type StatusBadgeProps = {
-  status: 'EXISTS' | 'OVERWRITE' | 'UPDATE' | 'CREATE' | undefined
+  status: 'EXISTS' | 'OVERWRITE' | 'UPDATE' | 'CREATE' | 'UNPUBLISHED' | undefined
   isAsset: boolean
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "@sanity/cross-dataset-duplicator",
-  "version": "0.3.1",
+  "version": "0.3.5",
   "description": "Empower content editors to migrate Documents and Assets between Sanity Projects and Datasets from inside Sanity Studio",
   "main": "lib/index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/@sanity-io/cross-dataset-duplicator.git"
+    "url": "git+ssh://git@github.com/sanity-io/cross-dataset-duplicator.git"
   },
   "keywords": [
     "sanity",
@@ -51,9 +51,9 @@
     "@sanity/mutator": "^2.13.0"
   },
   "bugs": {
-    "url": "https://github.com/@sanity-io/cross-dataset-duplicator/issues"
+    "url": "https://github.com/sanity-io/cross-dataset-duplicator/issues"
   },
-  "homepage": "https://github.com/@sanity-io/cross-dataset-duplicator#readme",
+  "homepage": "https://github.com/sanity-io/cross-dataset-duplicator#readme",
   "prettier": {
     "semi": false,
     "printWidth": 100,

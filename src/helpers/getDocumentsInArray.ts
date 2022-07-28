@@ -6,12 +6,14 @@ import {SanityDocument} from '../types'
 export async function getDocumentsInArray(
   fetchIds: string[],
   client: any,
-  currentIds?: Set<string>
+  currentIds?: Set<string>,
+  projection?: string,
 ) {
   const collection = []
 
   // Find initial docs
-  const data: SanityDocument[] = await client.fetch(`*[_id in $fetchIds]`, {
+  const query = `*[_id in $fetchIds]${projection ?? ``}`
+  const data: SanityDocument[] = await client.fetch(query, {
     fetchIds: fetchIds ?? [],
   })
 
