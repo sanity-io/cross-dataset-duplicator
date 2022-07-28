@@ -36,6 +36,11 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
   const spacesOptions = config?.__experimental_spaces?.length
     ? config.__experimental_spaces.map((space) => ({
         ...space,
+        api: {
+          ...space.api,
+          projectId: space.api.projectId || process.env.SANITY_STUDIO_API_PROJECT_ID,
+        },
+        usingEnvForProjectId: !space.api.projectId && process.env.SANITY_STUDIO_API_PROJECT_ID,
         disabled: space.api.dataset === originClient.config().dataset,
       }))
     : []
@@ -315,7 +320,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
   const headingText = [selectedTotal, `/`, payloadCount, `Documents and Assets selected`].join(` `)
 
   const buttonText = React.useMemo(() => {
-    let text = [`Duplicate`]
+    const text = [`Duplicate`]
 
     if (selectedDocumentsCount > 1) {
       text.push(selectedDocumentsCount, selectedDocumentsCount === 1 ? `Document` : `Documents`)
@@ -350,7 +355,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
                         .map((space) => (
                           <option key={space.name} value={space.name} disabled={space.disabled}>
                             {space.title ?? space.name}
-                            {hasMultipleProjectIds ? ` (${space.api.projectId})` : ``}
+                            {hasMultipleProjectIds || space.usingEnvForProjectId ? ` (${space.api.projectId})` : ``}
                           </option>
                         ))}
                     </Select>
@@ -366,7 +371,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
                       {spacesOptions.map((space) => (
                         <option key={space.name} value={space.name} disabled={space.disabled}>
                           {space.title ?? space.name}
-                          {hasMultipleProjectIds ? ` (${space.api.projectId})` : ``}
+                          {hasMultipleProjectIds || space.usingEnvForProjectId ? ` (${space.api.projectId})` : ``}
                           {space.disabled ? ` (Current)` : ``}
                         </option>
                       ))}
