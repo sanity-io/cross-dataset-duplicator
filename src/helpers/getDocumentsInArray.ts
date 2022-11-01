@@ -1,5 +1,7 @@
-import {extract} from '@sanity/mutator'
-import {SanityDocument} from '../types'
+import { extract } from '@sanity/mutator'
+import { SanityDocument } from '../types'
+
+import config from 'config:@sanity/cross-dataset-duplicator'
 
 // Recursively fetch Documents from an array of _id's and their references
 // Heavy use of Set is to avoid recursively querying for id's already in the payload
@@ -12,7 +14,8 @@ export async function getDocumentsInArray(
   const collection = []
 
   // Find initial docs
-  const query = `*[_id in $fetchIds]${projection ?? ``}`
+  const filter = ['_id in $fetchIds', config.filter].filter(Boolean).join(' && ')
+  const query = `*[${filter}]${projection ?? ``}`
   const data: SanityDocument[] = await client.fetch(query, {
     fetchIds: fetchIds ?? [],
   })
@@ -22,7 +25,7 @@ export async function getDocumentsInArray(
   }
 
   const localCurrentIds = currentIds ?? new Set()
-  
+
   // Find new ids in the returned data
   // Unless we started with an empty set, get the _ids from the data
   const newDataIds: Set<string> = new Set(
@@ -70,7 +73,7 @@ export async function getDocumentsInArray(
     }
 
     return [...acc, cur]
-  }, []) 
+  }, [])
 
   return uniqueCollection
 }
