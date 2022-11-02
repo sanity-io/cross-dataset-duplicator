@@ -29,6 +29,7 @@
   "license": "MIT",
   "dependencies": {
     "@sanity/icons": "^1.2.5",
+    "@sanity/mutator": "^2.13.0",
     "@sanity/ui": "^0.36.15",
     "async": "^3.2.1",
     "dset": "^3.1.0",
@@ -47,8 +48,7 @@
     "sanipack": "^2.1.0"
   },
   "peerDependencies": {
-    "react": "^17.0.0",
-    "@sanity/mutator": "^2.13.0"
+    "react": "^17.0.0"
   },
   "bugs": {
     "url": "https://github.com/sanity-io/cross-dataset-duplicator/issues"

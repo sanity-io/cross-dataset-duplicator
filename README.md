@@ -55,7 +55,8 @@ The plugin has some configuration options. These can be set by adding a config f
 ```json
 {
   "tool": true,
-  "types": ["article", "page"]
+  "types": ["article", "page"],
+  "filter": "_type != 'product'"
 }
 ```
 
@@ -63,6 +64,7 @@ Options:
 
 - `tool` (boolean, default: true) – Set whether the Migration Tool is enabled.
 - `types` (Array[String], default: []) – Set which Schema Types the Migration Action should be enabled in.
+- `filter` (String, default: undefined) - Set a predicate for documents when gathering dependencies.
 
 ### 3. Authentication Key
 
@@ -75,7 +77,6 @@ You can [create API tokens in manage](https://sanity.io/manage)
 ### 4. CORS origins
 
 If you want to duplicate data across different projects, you need to enable CORS for the different hosts. This allows different projects to connect to each other through the project API. CORS origins configuration can be found in your project page, under the API tab.
-
 
 ## Importing the Document Action
 
