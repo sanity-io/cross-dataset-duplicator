@@ -15,6 +15,7 @@ import {
   Select,
   Flex,
   Checkbox,
+  Grid,
 } from '@sanity/ui'
 import {ArrowRightIcon, SearchIcon, LaunchIcon} from '@sanity/icons'
 import sanityClient from 'part:@sanity/base/client'
@@ -74,6 +75,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
       : []
   )
   const [hasReferences, setHasReferences] = useState(false)
+  const [referees, setReferees] = useState([])
   const [isDuplicating, setIsDuplicating] = useState(false)
   const [isGathering, setIsGathering] = useState(false)
   const [progress, setProgress] = useState([0, 0])
@@ -102,6 +104,14 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
         text: createInitialMessage(docCount, refsCount),
       })
     }
+
+    ;(async () => {
+      const referees = await sanityClient.fetch('*[references($id)]', {id: docs[0]._id})
+
+      if (referees.length) {
+        setReferees(referees)
+      }
+    })()
   }, [docs])
 
   // Re-check payload on destination when value changes
@@ -168,7 +178,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
   }
 
   // Find and recursively follow references beginning with this document
-  async function handleReferences() {
+  async function handleReferences(docs) {
     setIsGathering(true)
     const docIds = docs.map((doc) => doc._id)
 
@@ -379,7 +389,9 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
                         .map((space) => (
                           <option key={space.name} value={space.name} disabled={space.disabled}>
                             {space.title ?? space.name}
-                            {hasMultipleProjectIds || space.usingEnvForProjectId ? ` (${space.api.projectId})` : ``}
+                            {hasMultipleProjectIds || space.usingEnvForProjectId
+                              ? ` (${space.api.projectId})`
+                              : ``}
                           </option>
                         ))}
                     </Select>
@@ -395,7 +407,9 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
                       {spacesOptions.map((space) => (
                         <option key={space.name} value={space.name} disabled={space.disabled}>
                           {space.title ?? space.name}
-                          {hasMultipleProjectIds || space.usingEnvForProjectId ? ` (${space.api.projectId})` : ``}
+                          {hasMultipleProjectIds || space.usingEnvForProjectId
+                            ? ` (${space.api.projectId})`
+                            : ``}
                           {space.disabled ? ` (Current)` : ``}
                         </option>
                       ))}
@@ -463,17 +477,33 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
               </Stack>
             )}
             <Stack space={2} padding={4} paddingTop={0}>
-              {hasReferences && (
-                <Button
-                  fontSize={2}
-                  padding={4}
-                  tone="positive"
-                  mode="ghost"
-                  icon={SearchIcon}
-                  onClick={handleReferences}
-                  text="Gather References"
-                  disabled={isDuplicating || !selectedTotal || isGathering}
-                />
+              {(referees.length > 0 || hasReferences) && (
+                <Grid columns={referees.length > 0 && hasReferences ? 2 : 1} gap={2}>
+                  {hasReferences && (
+                    <Button
+                      fontSize={2}
+                      padding={4}
+                      tone="positive"
+                      mode="ghost"
+                      icon={SearchIcon}
+                      onClick={() => handleReferences(docs)}
+                      text="Gather References"
+                      disabled={isDuplicating || !selectedTotal || isGathering}
+                    />
+                  )}
+                  {referees.length > 0 && (
+                    <Button
+                      fontSize={2}
+                      padding={4}
+                      tone="positive"
+                      mode="ghost"
+                      icon={SearchIcon}
+                      onClick={() => handleReferences(referees)}
+                      text="Gather Referee References"
+                      disabled={isDuplicating || !selectedTotal || isGathering}
+                    />
+                  )}
+                </Grid>
               )}
               <Button
                 fontSize={2}
