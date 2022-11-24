@@ -1,4 +1,5 @@
 {
   "tool": true,
-  "types": []
+  "types": [],
+  "follow": []
 }
