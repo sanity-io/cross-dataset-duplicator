@@ -5,6 +5,7 @@ import asyncify from 'async/asyncify'
 import {extract, extractWithPath} from '@sanity/mutator'
 import {dset} from 'dset'
 import {
+  Grid,
   Card,
   Container,
   Text,
@@ -22,6 +23,7 @@ import sanityClient from 'part:@sanity/base/client'
 import Preview from 'part:@sanity/base/preview'
 import schema from 'part:@sanity/base/schema'
 import config from 'config:sanity'
+import duplicatorConfig from 'config:@sanity/cross-dataset-duplicator'
 
 import {typeIsAsset, stickyStyles, createInitialMessage} from '../helpers'
 import {getDocumentsInArray} from '../helpers/getDocumentsInArray'
@@ -41,39 +43,50 @@ export function DuplicatorToolWrapper(props: DuplicatorToolProps) {
   const {docs, token} = props
   const [mode, setMode] = useState('outbound')
   const [inbound, setInbound] = useState([])
+  const {follow = []} = duplicatorConfig
 
   useEffect(() => {
     ;(async () => {
       const inboundReferences = await sanityClient.fetch('*[references($id)]', {id: docs[0]._id})
-      setInbound(inboundReferences)
+      setInbound([...props.docs, ...inboundReferences])
     })()
   }, [])
 
+  console.log(docs, inbound)
+
   return (
     <Container>
-      <Flex align="center">
-        <Box padding={2} flex={1}>
-          <Tab
-            selected={mode === 'outbound'}
-            onClick={() => setMode('outbound')}
-            style={{width: '100%', textAlign: 'center', border: '2px solid #eef0f4'}}
-          >
-            Outbound
-          </Tab>
-        </Box>
-        <Box padding={2} flex={1}>
-          <Tab
-            flex={1}
-            selected={mode === 'inbound'}
-            onClick={() => setMode('inbound')}
-            disabled={inbound.length === 0}
-            style={{width: '100%', textAlign: 'center', border: '2px solid #eef0f4'}}
-          >
-            Inbound{inbound.length > 0 && ` (${inbound.length})`}
-          </Tab>
-        </Box>
-      </Flex>
-      <DuplicatorTool key={mode} docs={mode === 'outbound' ? docs : inbound} token={token} />
+      {follow.includes(`inbound`) || follow.includes(`outbound`) ? (
+        <Card paddingX={4} paddingBottom={4} marginBottom={4} borderBottom>
+          <Grid columns={2} gap={4}>
+            {follow.includes(`outbound`) ? (
+              <Button
+                mode="ghost"
+                tone="primary"
+                selected={mode === 'outbound'}
+                onClick={() => setMode('outbound')}
+                text={`Outbound`}
+              />
+            ) : null}
+            {follow.includes(`inbound`) ? (
+              <Button
+                mode="ghost"
+                tone="primary"
+                selected={mode === 'inbound'}
+                onClick={() => setMode('inbound')}
+                disabled={inbound.length === 0}
+                text={inbound.length > 0 ? `Inbound (${inbound.length})` : 'No inbound references'}
+              />
+            ) : null}
+          </Grid>
+        </Card>
+      ) : null}
+      <DuplicatorTool
+        key={mode}
+        docs={mode === 'outbound' ? docs : inbound}
+        token={token}
+        draftIds={[]}
+      />
     </Container>
   )
 }

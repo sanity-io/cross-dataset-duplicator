@@ -56,7 +56,8 @@ The plugin has some configuration options. These can be set by adding a config f
 {
   "tool": true,
   "types": ["article", "page"],
-  "filter": "_type != 'product'"
+  "filter": "_type != 'product'",
+  "follow" []
 }
 ```
 
@@ -65,6 +66,7 @@ Options:
 - `tool` (boolean, default: true) – Set whether the Migration Tool is enabled.
 - `types` (Array[String], default: []) – Set which Schema Types the Migration Action should be enabled in.
 - `filter` (String, default: undefined) - Set a predicate for documents when gathering dependencies.
+- `follow` (("inbound" | "outbound")[], default: []) – Add buttons to allow the user to begin with just the existing document or first fetch all inbound references.
 
 ### 3. Authentication Key
 
