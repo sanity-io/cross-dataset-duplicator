@@ -15,6 +15,7 @@ import {
   Select,
   Flex,
   Checkbox,
+  Tab,
 } from '@sanity/ui'
 import {ArrowRightIcon, SearchIcon, LaunchIcon} from '@sanity/icons'
 import sanityClient from 'part:@sanity/base/client'
@@ -34,6 +35,47 @@ type DuplicatorToolProps = {
   docs: SanityDocument[]
   draftIds: string[]
   token: string
+}
+
+export function DuplicatorToolWrapper(props: DuplicatorToolProps) {
+  const {docs, token} = props
+  const [mode, setMode] = useState('outbound')
+  const [inbound, setInbound] = useState([])
+
+  useEffect(() => {
+    ;(async () => {
+      const inboundReferences = await sanityClient.fetch('*[references($id)]', {id: docs[0]._id})
+      setInbound(inboundReferences)
+    })()
+  }, [])
+
+  return (
+    <Container>
+      <Flex align="center">
+        <Box padding={2} flex={1}>
+          <Tab
+            selected={mode === 'outbound'}
+            onClick={() => setMode('outbound')}
+            style={{width: '100%', textAlign: 'center', border: '2px solid #eef0f4'}}
+          >
+            Outbound
+          </Tab>
+        </Box>
+        <Box padding={2} flex={1}>
+          <Tab
+            flex={1}
+            selected={mode === 'inbound'}
+            onClick={() => setMode('inbound')}
+            disabled={inbound.length === 0}
+            style={{width: '100%', textAlign: 'center', border: '2px solid #eef0f4'}}
+          >
+            Inbound{inbound.length > 0 && ` (${inbound.length})`}
+          </Tab>
+        </Box>
+      </Flex>
+      <DuplicatorTool key={mode} docs={mode === 'outbound' ? docs : inbound} token={token} />
+    </Container>
+  )
 }
 
 export default function DuplicatorTool(props: DuplicatorToolProps) {
@@ -379,7 +421,9 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
                         .map((space) => (
                           <option key={space.name} value={space.name} disabled={space.disabled}>
                             {space.title ?? space.name}
-                            {hasMultipleProjectIds || space.usingEnvForProjectId ? ` (${space.api.projectId})` : ``}
+                            {hasMultipleProjectIds || space.usingEnvForProjectId
+                              ? ` (${space.api.projectId})`
+                              : ``}
                           </option>
                         ))}
                     </Select>
@@ -395,7 +439,9 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
                       {spacesOptions.map((space) => (
                         <option key={space.name} value={space.name} disabled={space.disabled}>
                           {space.title ?? space.name}
-                          {hasMultipleProjectIds || space.usingEnvForProjectId ? ` (${space.api.projectId})` : ``}
+                          {hasMultipleProjectIds || space.usingEnvForProjectId
+                            ? ` (${space.api.projectId})`
+                            : ``}
                           {space.disabled ? ` (Current)` : ``}
                         </option>
                       ))}

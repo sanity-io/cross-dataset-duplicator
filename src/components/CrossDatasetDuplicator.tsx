@@ -3,7 +3,7 @@ import {useSecrets, SettingsView} from 'sanity-secrets'
 import {ThemeProvider, Flex, Box, Spinner} from '@sanity/ui'
 
 import DuplicatorQuery from './DuplicatorQuery'
-import DuplicatorTool from './DuplicatorTool'
+import {DuplicatorToolWrapper} from './DuplicatorTool'
 import ResetSecret from './ResetSecret'
 import Feedback from './Feedback'
 import {SanityDocument} from '../types'
@@ -94,7 +94,7 @@ export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProp
 
   return (
     <ThemeProvider>
-      <DuplicatorTool docs={docs} token={secrets?.bearerToken} />
+      <DuplicatorToolWrapper docs={docs} token={secrets?.bearerToken} />
     </ThemeProvider>
   )
 }
