@@ -1,3 +1,23 @@
+> **NOTE**
+>
+> This is the **Sanity Studio v3 version** of @sanity/cross-dataset-duplicator.
+>
+> For the v2 version, please refer to the [v2-branch](https://github.com/sanity-io/cross-dataset-duplicator).
+
+## Installation
+
+```
+npm install --save @sanity/cross-dataset-duplicator@studio-v3
+```
+
+or
+
+```
+yarn add @sanity/cross-dataset-duplicator@studio-v3
+```
+
+## Usage
+
 # Cross Dataset Duplicator
 
 Sanity Studio Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
@@ -118,3 +138,23 @@ export default function resolveDocumentActions(props) {
 - Save predefined GROQ queries in the Tool to make bulk repeated Migrations simpler
 - Config options for allowed migrations (eg Dev -> Staging but not Dev -> Live)
 - Config options for permissions/user role checks
+
+
+## License
+
+MIT-licensed. See LICENSE.
+
+## Develop & test
+
+This plugin uses [@sanity/plugin-kit](https://github.com/sanity-io/plugin-kit)
+with default configuration for build & watch scripts.
+
+See [Testing a plugin in Sanity Studio](https://github.com/sanity-io/plugin-kit#testing-a-plugin-in-sanity-studio)
+on how to run this plugin with hotreload in the studio.
+
+### Release new version
+
+Run ["CI & Release" workflow](https://github.com/sanity-io/cross-dataset-duplicator/actions/workflows/main.yml).
+Make sure to select the main branch and check "Release new version".
+
+Semantic release will only release on configured branches, so it is safe to run release on any branch.

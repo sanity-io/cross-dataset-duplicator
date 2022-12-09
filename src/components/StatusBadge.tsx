@@ -23,10 +23,10 @@ const assetTones: StatusTones = {
   OVERWRITE: `critical`,
   UPDATE: `critical`,
   CREATE: `positive`,
-  UNPUBLISHED: `default`
+  UNPUBLISHED: `default`,
 }
 
-type messageTypes = {
+export type MessageTypes = {
   EXISTS: string
   OVERWRITE: string
   UPDATE: string
@@ -34,7 +34,7 @@ type messageTypes = {
   UNPUBLISHED: string
 }
 
-const documentMessages: messageTypes = {
+const documentMessages: MessageTypes = {
   // Only happens once document is copied the first time, and _updatedAt is the same
   EXISTS: `This document already exists at the Destination with the same ID with the same Updated time.`,
   // Is true immediately after transaction as _updatedAt is updated by API after mutation
@@ -45,10 +45,10 @@ const documentMessages: messageTypes = {
   UPDATE: `An older version of this document exists at the Destination, and it will be overwritten with this version.`,
   // Document at destination doesn't exist
   CREATE: `This document will be created at the destination.`,
-  UNPUBLISHED: `A Draft version of this Document exists in this Dataset, but only the Published version will be duplicated to the destination.`
+  UNPUBLISHED: `A Draft version of this Document exists in this Dataset, but only the Published version will be duplicated to the destination.`,
 }
 
-const assetMessages: messageTypes = {
+const assetMessages: MessageTypes = {
   EXISTS: `This Asset already exists at the Destination`,
   OVERWRITE: `This Asset already exists at the Destination`,
   UPDATE: `This Asset already exists at the Destination`,
@@ -56,7 +56,7 @@ const assetMessages: messageTypes = {
   UNPUBLISHED: ``,
 }
 
-const assetStatus: messageTypes = {
+const assetStatus: MessageTypes = {
   EXISTS: `RE-UPLOAD`,
   OVERWRITE: `RE-UPLOAD`,
   UPDATE: `RE-UPLOAD`,
@@ -65,15 +65,19 @@ const assetStatus: messageTypes = {
 }
 
 type StatusBadgeProps = {
-  status: 'EXISTS' | 'OVERWRITE' | 'UPDATE' | 'CREATE' | 'UNPUBLISHED' | undefined
   isAsset: boolean
+  status?: keyof MessageTypes
 }
 
 export default function StatusBadge(props: StatusBadgeProps) {
   const {status, isAsset} = props
 
+  if (!status) {
+    return null
+  }
+
   const badgeTone = isAsset ? assetTones[status] : documentTones[status]
-  
+
   if (!badgeTone) {
     return (
       <Badge muted padding={2} fontSize={1} mode="outline">
@@ -81,7 +85,7 @@ export default function StatusBadge(props: StatusBadgeProps) {
       </Badge>
     )
   }
-  
+
   const badgeText = isAsset ? assetMessages[status] : documentMessages[status]
   const badgeStatus = isAsset ? assetStatus[status] : status
 

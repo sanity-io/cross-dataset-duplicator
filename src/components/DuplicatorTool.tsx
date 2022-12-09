@@ -1,11 +1,20 @@
 /* eslint-disable react/jsx-no-bind */
 import React, {useState, useEffect} from 'react'
+import {
+  useClient,
+  Preview,
+  useSchema,
+  useWorkspaces,
+  WorkspaceSummary,
+  SanityDocument,
+} from 'sanity'
+// @ts-ignore
 import mapLimit from 'async/mapLimit'
+// @ts-ignore
 import asyncify from 'async/asyncify'
-import {extract, extractWithPath} from '@sanity/mutator'
+import {extractWithPath} from '@sanity/mutator'
 import {dset} from 'dset'
 import {
-  Grid,
   Card,
   Container,
   Text,
@@ -16,114 +25,69 @@ import {
   Select,
   Flex,
   Checkbox,
-  Tab,
+  CardTone,
 } from '@sanity/ui'
 import {ArrowRightIcon, SearchIcon, LaunchIcon} from '@sanity/icons'
-import sanityClient from 'part:@sanity/base/client'
-import Preview from 'part:@sanity/base/preview'
-import schema from 'part:@sanity/base/schema'
-import config from 'config:sanity'
-import duplicatorConfig from 'config:@sanity/cross-dataset-duplicator'
+import {SanityAssetDocument} from '@sanity/client'
+import {isAssetId, isSanityFileAsset} from '@sanity/asset-utils'
 
-import {typeIsAsset, stickyStyles, createInitialMessage} from '../helpers'
+import {stickyStyles, createInitialMessage} from '../helpers'
 import {getDocumentsInArray} from '../helpers/getDocumentsInArray'
 import SelectButtons from './SelectButtons'
-import StatusBadge from './StatusBadge'
+import StatusBadge, {MessageTypes} from './StatusBadge'
 import Feedback from './Feedback'
-import {SanityDocument} from '../types'
 import {clientConfig} from '../helpers/clientConfig'
+import {PluginConfig} from '..'
 
-type DuplicatorToolProps = {
+export type DuplicatorToolProps = {
   docs: SanityDocument[]
   draftIds: string[]
   token: string
+  config: PluginConfig
 }
 
-export function DuplicatorToolWrapper(props: DuplicatorToolProps) {
-  const {docs, token} = props
-  const [mode, setMode] = useState('outbound')
-  const [inbound, setInbound] = useState([])
-  const {follow = []} = duplicatorConfig
+export type PayloadItem = {
+  doc: SanityDocument
+  include: boolean
+  status?: keyof MessageTypes
+  hasDraft?: boolean
+}
 
-  useEffect(() => {
-    ;(async () => {
-      const inboundReferences = await sanityClient.fetch('*[references($id)]', {id: docs[0]._id})
-      setInbound([...props.docs, ...inboundReferences])
-    })()
-  }, [])
+type WorkspaceOption = WorkspaceSummary & {
+  disabled: boolean
+}
 
-  console.log(docs, inbound)
-
-  return (
-    <Container>
-      {follow.includes(`inbound`) || follow.includes(`outbound`) ? (
-        <Card paddingX={4} paddingBottom={4} marginBottom={4} borderBottom>
-          <Grid columns={2} gap={4}>
-            {follow.includes(`outbound`) ? (
-              <Button
-                mode="ghost"
-                tone="primary"
-                selected={mode === 'outbound'}
-                onClick={() => setMode('outbound')}
-                text={`Outbound`}
-              />
-            ) : null}
-            {follow.includes(`inbound`) ? (
-              <Button
-                mode="ghost"
-                tone="primary"
-                selected={mode === 'inbound'}
-                onClick={() => setMode('inbound')}
-                disabled={inbound.length === 0}
-                text={inbound.length > 0 ? `Inbound (${inbound.length})` : 'No inbound references'}
-              />
-            ) : null}
-          </Grid>
-        </Card>
-      ) : null}
-      <DuplicatorTool
-        key={mode}
-        docs={mode === 'outbound' ? docs : inbound}
-        token={token}
-        draftIds={[]}
-      />
-    </Container>
-  )
+type Message = {
+  text: string
+  tone: CardTone
 }
 
 export default function DuplicatorTool(props: DuplicatorToolProps) {
-  const {docs, draftIds, token} = props
+  const {docs, draftIds, token, config} = props
 
   // Prepare origin (this Studio) client
-  // In function-scope so it is up to date on every render
-  const originClient = sanityClient.withConfig(clientConfig)
+  const originClient = useClient(clientConfig)
+
+  const schema = useSchema()
 
   // Create list of dataset options
   // and set initial value of dropdown
-  const spacesOptions = config?.__experimental_spaces?.length
-    ? config.__experimental_spaces.map((space) => ({
-        ...space,
-        api: {
-          ...space.api,
-          projectId: space.api.projectId || process.env.SANITY_STUDIO_API_PROJECT_ID,
-        },
-        usingEnvForProjectId: !space.api.projectId && process.env.SANITY_STUDIO_API_PROJECT_ID,
-        disabled:
-          space.api.dataset === originClient.config().dataset &&
-          space.api.projectId === originClient.config().projectId,
-      }))
-    : []
+  const workspaces = useWorkspaces()
+  const workspacesOptions: WorkspaceOption[] = workspaces.map((workspace) => ({
+    ...workspace,
+    disabled: workspace.dataset === originClient.config().dataset,
+  }))
 
-  const [destination, setDestination] = useState(
-    spacesOptions.length ? spacesOptions.find((space) => !space.disabled) : {}
+  const [destination, setDestination] = useState<WorkspaceOption | null>(
+    workspaces.length ? workspacesOptions.find((space) => !space.disabled) ?? null : null
   )
-  const [message, setMessage] = useState({})
-  const [payload, setPayload] = useState(
+  const [message, setMessage] = useState<Message | null>(null)
+  const [payload, setPayload] = useState<PayloadItem[]>(
     docs.length
       ? docs.map((item) => ({
           doc: item,
           include: true,
-          status: null,
+          status: undefined,
           hasDraft: draftIds?.length ? draftIds.includes(`drafts.${item._id}`) : false,
         }))
       : []
@@ -131,16 +95,17 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
   const [hasReferences, setHasReferences] = useState(false)
   const [isDuplicating, setIsDuplicating] = useState(false)
   const [isGathering, setIsGathering] = useState(false)
-  const [progress, setProgress] = useState([0, 0])
+  const [progress, setProgress] = useState<number[]>([0, 0])
 
   // Check for References and update message
   useEffect(() => {
     const expr = `.._ref`
     const initialRefs = []
-    const initialPayload = []
+    const initialPayload: PayloadItem[] = []
 
     docs.forEach((doc) => {
-      initialRefs.push(...extract(expr, doc))
+      const refs = extractWithPath(expr, doc).map((ref) => ref.value)
+      initialRefs.push(...refs)
       initialPayload.push({include: true, doc})
     })
 
@@ -166,7 +131,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
   }, [destination, docs])
 
   // Check if payload documents exist at destination
-  async function updatePayloadStatuses(newPayload = []) {
+  async function updatePayloadStatuses(newPayload: PayloadItem[] = []) {
     const payloadActual = newPayload.length ? newPayload : payload
 
     if (!payloadActual.length || !destination?.name) {
@@ -174,12 +139,12 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
     }
 
     const payloadIds = payloadActual.map(({doc}) => doc._id)
-    const destinationClient = sanityClient.withConfig({
+    const destinationClient = originClient.withConfig({
       ...clientConfig,
-      dataset: destination.api.dataset,
-      projectId: destination.api.projectId,
+      dataset: destination.dataset,
+      projectId: destination.projectId,
     })
-    const destinationData = await destinationClient.fetch(
+    const destinationData: SanityDocument[] = await destinationClient.fetch(
       `*[_id in $payloadIds]{ _id, _updatedAt }`,
       {payloadIds}
     )
@@ -210,7 +175,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
     setPayload(updatedPayload)
   }
 
-  function handleCheckbox(_id) {
+  function handleCheckbox(_id: string) {
     const updatedPayload = payload.map((item) => {
       if (item.doc._id === _id) {
         item.include = !item.include
@@ -227,13 +192,13 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
     setIsGathering(true)
     const docIds = docs.map((doc) => doc._id)
 
-    const payloadDocs = await getDocumentsInArray(docIds, originClient, null)
-    const draftDocs = await getDocumentsInArray(
-      docIds.map((id) => `drafts.${id}`),
-      originClient,
-      null,
-      `{_id}`
-    )
+    const payloadDocs = await getDocumentsInArray({fetchIds: docIds, client: originClient, config})
+    const draftDocs = await getDocumentsInArray({
+      fetchIds: docIds.map((id) => `drafts.${id}`),
+      client: originClient,
+      projection: `{_id}`,
+      config,
+    })
     const draftDocsIds = new Set(draftDocs.map(({_id}) => _id))
 
     // Shape it up
@@ -242,7 +207,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
       // Include this in the transaction?
       include: true,
       // Does it exist at the destination?
-      status: '',
+      status: undefined,
       // Does it have any drafts?
       hasDraft: draftDocsIds.has(`drafts.${doc._id}`),
     }))
@@ -254,38 +219,45 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
 
   // Duplicate payload to destination dataset
   async function handleDuplicate() {
+    if (!destination) {
+      return
+    }
+
     setIsDuplicating(true)
 
-    const assetsCount = payload.filter(({doc, include}) => include && typeIsAsset(doc._type)).length
+    const assetsCount = payload.filter(({doc, include}) => include && isAssetId(doc._id)).length
     let currentProgress = 0
     setProgress([currentProgress, assetsCount])
 
-    setMessage({text: 'Duplicating...'})
+    setMessage({text: 'Duplicating...', tone: `default`})
 
-    const destinationClient = sanityClient.withConfig({
+    const destinationClient = originClient.withConfig({
       ...clientConfig,
-      dataset: destination.api.dataset,
-      projectId: destination.api.projectId,
+      dataset: destination.dataset,
+      projectId: destination.projectId,
     })
 
-    const transactionDocs = []
-    const svgMaps = []
+    const transactionDocs: SanityDocument[] = []
+    const svgMaps: {old: string; new: string}[] = []
 
     // Upload assets and then add to transaction
-    async function fetchDoc(doc) {
-      if (typeIsAsset(doc._type)) {
+    async function fetchDoc(doc: SanityAssetDocument) {
+      if (isAssetId(doc._id)) {
         // Download and upload asset
         // Get the *original* image with this dlRaw param to create the same determenistic _id
-        const uploadType = doc._type.split('.').pop().replace('Asset', '')
-        const downloadUrl = uploadType === 'image' ? `${doc.url}?dlRaw=true` : doc.url
-        const downloadConfig =
-          uploadType === 'image' ? {headers: {Authorization: `Bearer ${token}`}} : {}
+        const typeIsFile = isSanityFileAsset(doc)
+        const downloadUrl = typeIsFile ? doc.url : `${doc.url}?dlRaw=true`
+        const downloadConfig = typeIsFile ? {} : {headers: {Authorization: `Bearer ${token}`}}
 
         await fetch(downloadUrl, downloadConfig).then(async (res) => {
           const assetData = await res.blob()
 
           const options = {filename: doc.originalFilename}
-          const assetDoc = await destinationClient.assets.upload(uploadType, assetData, options)
+          const assetDoc = await destinationClient.assets.upload(
+            typeIsFile ? `file` : `image`,
+            assetData,
+            options
+          )
 
           // SVG _id's need remapping before transaction
           if (doc?.extension === 'svg') {
@@ -300,6 +272,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
           text: `Duplicating ${currentProgress}/${assetsCount} ${
             assetsCount === 1 ? `Assets` : `Assets`
           }`,
+          tone: 'default',
         })
 
         return setProgress([currentProgress, assetsCount])
@@ -312,7 +285,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
     const result = new Promise((resolve, reject) => {
       const payloadIncludedDocs = payload.filter((item) => item.include).map((item) => item.doc)
 
-      mapLimit(payloadIncludedDocs, 3, asyncify(fetchDoc), (err) => {
+      mapLimit(payloadIncludedDocs, 3, asyncify(fetchDoc), (err: Error) => {
         if (err) {
           setIsDuplicating(false)
           setMessage({tone: 'critical', text: `Duplication Failed`})
@@ -320,6 +293,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
           reject(new Error('Duplication Failed'))
         }
 
+        // @ts-ignore
         resolve()
       })
     })
@@ -368,33 +342,33 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
       })
 
     setIsDuplicating(false)
-    setProgress(0)
+    setProgress([0, 0])
   }
 
-  function handleChange(e) {
-    setDestination(spacesOptions.find((space) => space.name === e.currentTarget.value))
-  }
+  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    if (!workspacesOptions.length) {
+      return
+    }
 
-  if (!spacesOptions.length) {
-    return (
-      <Feedback tone="critical">
-        <code>__experimental_spaces</code> not found in <code>sanity.json</code>
-      </Feedback>
-    )
+    const targeted = workspacesOptions.find((space) => space.name === e.currentTarget.value)
+
+    if (targeted) {
+      setDestination(targeted)
+    }
   }
 
   const payloadCount = payload.length
   const firstSvgIndex = payload.findIndex(({doc}) => doc.extension === 'svg')
   const selectedDocumentsCount = payload.filter(
-    (item) => item.include && !typeIsAsset(item.doc._type)
+    (item) => item.include && !isAssetId(item.doc._id)
   ).length
   const selectedAssetsCount = payload.filter(
-    (item) => item.include && typeIsAsset(item.doc._type)
+    (item) => item.include && isAssetId(item.doc._id)
   ).length
   const selectedTotal = selectedDocumentsCount + selectedAssetsCount
   const destinationTitle = destination?.title ?? destination?.name
   const hasMultipleProjectIds =
-    new Set(spacesOptions.map((space) => space?.api?.projectId).filter(Boolean)).size > 1
+    new Set(workspacesOptions.map((space) => space?.projectId).filter(Boolean)).size > 1
 
   const headingText = [selectedTotal, `/`, payloadCount, `Documents and Assets selected`].join(` `)
 
@@ -402,21 +376,38 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
     const text = [`Duplicate`]
 
     if (selectedDocumentsCount > 1) {
-      text.push(selectedDocumentsCount, selectedDocumentsCount === 1 ? `Document` : `Documents`)
+      text.push(
+        String(selectedDocumentsCount),
+        selectedDocumentsCount === 1 ? `Document` : `Documents`
+      )
     }
 
     if (selectedAssetsCount > 1) {
-      text.push(`and`, selectedAssetsCount, selectedAssetsCount === 1 ? `Asset` : `Assets`)
+      text.push(`and`, String(selectedAssetsCount), selectedAssetsCount === 1 ? `Asset` : `Assets`)
     }
 
-    if (originClient.config().projectId !== destination.api.projectId) {
+    if (originClient.config().projectId !== destination?.projectId) {
       text.push(`between Projects`)
     }
 
-    text.push(`to`, destinationTitle)
+    text.push(`to`, String(destinationTitle))
 
     return text.join(` `)
-  }, [selectedDocumentsCount, selectedAssetsCount, destinationTitle])
+  }, [
+    selectedDocumentsCount,
+    selectedAssetsCount,
+    originClient,
+    destination?.projectId,
+    destinationTitle,
+  ])
+
+  if (workspacesOptions.length < 2) {
+    return (
+      <Feedback tone="critical">
+        <code>sanity.config.ts</code> must contain at least two Workspaces to use this plugin.
+      </Feedback>
+    )
+  }
 
   return (
     <Container width={1}>
@@ -425,18 +416,19 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
           <>
             <Card borderBottom padding={4} style={stickyStyles}>
               <Stack space={4}>
-                <Flex space={3}>
+                <Flex gap={3}>
                   <Stack style={{flex: 1}} space={3}>
                     <Label>Duplicate from</Label>
-                    <Select readOnly value={spacesOptions.find((space) => space.disabled)?.name}>
-                      {spacesOptions
+                    <Select
+                      readOnly
+                      value={workspacesOptions.find((space) => space.disabled)?.name}
+                    >
+                      {workspacesOptions
                         .filter((space) => space.disabled)
                         .map((space) => (
                           <option key={space.name} value={space.name} disabled={space.disabled}>
                             {space.title ?? space.name}
-                            {hasMultipleProjectIds || space.usingEnvForProjectId
-                              ? ` (${space.api.projectId})`
-                              : ``}
+                            {hasMultipleProjectIds ? ` (${space.projectId})` : ``}
                           </option>
                         ))}
                     </Select>
@@ -449,12 +441,10 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
                   <Stack style={{flex: 1}} space={3}>
                     <Label>To Destination</Label>
                     <Select onChange={handleChange}>
-                      {spacesOptions.map((space) => (
+                      {workspacesOptions.map((space) => (
                         <option key={space.name} value={space.name} disabled={space.disabled}>
                           {space.title ?? space.name}
-                          {hasMultipleProjectIds || space.usingEnvForProjectId
-                            ? ` (${space.api.projectId})`
-                            : ``}
+                          {hasMultipleProjectIds ? ` (${space.projectId})` : ``}
                           {space.disabled ? ` (Current)` : ``}
                         </option>
                       ))}
@@ -485,40 +475,49 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
                 )}
               </Stack>
             </Card>
-            {message?.text && (
+            {message && (
               <Box paddingX={4} paddingTop={4}>
-                <Card padding={3} radius={2} shadow={1} tone={message?.tone ?? 'transparent'}>
+                <Card padding={3} radius={2} shadow={1} tone={message.tone}>
                   <Text size={1}>{message.text}</Text>
                 </Card>
               </Box>
             )}
             {payload.length > 0 && (
               <Stack padding={4} space={3}>
-                {payload.map(({doc, include, status, hasDraft}, index) => (
-                  <React.Fragment key={doc._id}>
-                    <Flex align="center">
-                      <Checkbox checked={include} onChange={() => handleCheckbox(doc._id)} />
-                      <Box flex={1} paddingX={3}>
-                        <Preview value={doc} type={schema.get(doc._type)} />
-                      </Box>
-                      <Flex items="center" gap={2}>
-                        {hasDraft ? <StatusBadge status="UNPUBLISHED" isAsset={false} /> : null}
-                        <StatusBadge status={status} isAsset={typeIsAsset(doc._type)} />
+                {payload.map(({doc, include, status, hasDraft}, index) => {
+                  const schemaType = schema.get(doc._type)
+
+                  return (
+                    <React.Fragment key={doc._id}>
+                      <Flex align="center">
+                        <Checkbox checked={include} onChange={() => handleCheckbox(doc._id)} />
+                        <Box flex={1} paddingX={3}>
+                          {schemaType ? (
+                            <Preview value={doc} schemaType={schemaType} />
+                          ) : (
+                            <Card tone="caution">Invalid schema type</Card>
+                          )}
+                        </Box>
+                        <Flex align="center" gap={2}>
+                          {hasDraft ? <StatusBadge status="UNPUBLISHED" isAsset={false} /> : null}
+                          <StatusBadge status={status} isAsset={isAssetId(doc._id)} />
+                        </Flex>
                       </Flex>
-                    </Flex>
-                    {doc?.extension === 'svg' && index === firstSvgIndex && (
-                      <Card padding={3} radius={2} shadow={1} tone="caution">
-                        <Text size={1}>
-                          Due to how SVGs are sanitized after first uploaded, duplicated SVG assets
-                          may have new <code>_id</code>'s at the destination. The newly generated{' '}
-                          <code>_id</code> will be the same in each duplication, but it will never
-                          be the same <code>_id</code> as the first time this Asset was uploaded.
-                          References to the asset will be updated to use the new <code>_id</code>.
-                        </Text>
-                      </Card>
-                    )}
-                  </React.Fragment>
-                ))}
+                      {doc?.extension === 'svg' && index === firstSvgIndex && (
+                        <Card padding={3} radius={2} shadow={1} tone="caution">
+                          <Text size={1}>
+                            Due to how SVGs are sanitized after first uploaded, duplicated SVG
+                            assets may have new <code>_id</code>'s at the destination. The newly
+                            generated <code>_id</code> will be the same in each duplication, but it
+                            will never be the same <code>_id</code> as the first time this Asset was
+                            uploaded. References to the asset will be updated to use the new{' '}
+                            <code>_id</code>.
+                          </Text>
+                        </Card>
+                      )}
+                    </React.Fragment>
+                  )
+                })}
               </Stack>
             )}
             <Stack space={2} padding={4} paddingTop={0}>

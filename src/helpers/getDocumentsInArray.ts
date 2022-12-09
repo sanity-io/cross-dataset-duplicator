@@ -1,17 +1,20 @@
-import { extract } from '@sanity/mutator'
-import { SanityDocument } from '../types'
+import {extractWithPath} from '@sanity/mutator'
+import {SanityClient, SanityDocument} from 'sanity'
+import {PluginConfig} from '..'
 
-import config from 'config:@sanity/cross-dataset-duplicator'
+type OptionsBag = {
+  fetchIds: string[]
+  client: SanityClient
+  config: PluginConfig
+  currentIds?: Set<string> | null
+  projection?: string
+}
 
 // Recursively fetch Documents from an array of _id's and their references
 // Heavy use of Set is to avoid recursively querying for id's already in the payload
-export async function getDocumentsInArray(
-  fetchIds: string[],
-  client: any,
-  currentIds?: Set<string>,
-  projection?: string,
-) {
-  const collection = []
+export async function getDocumentsInArray(options: OptionsBag): Promise<SanityDocument[]> {
+  const {fetchIds, client, config, currentIds, projection} = options
+  const collection: SanityDocument[] = []
 
   // Find initial docs
   const filter = ['_id in $fetchIds', config.filter].filter(Boolean).join(' && ')
@@ -24,11 +27,11 @@ export async function getDocumentsInArray(
     return []
   }
 
-  const localCurrentIds = currentIds ?? new Set()
+  const localCurrentIds = currentIds ?? new Set<string>()
 
   // Find new ids in the returned data
   // Unless we started with an empty set, get the _ids from the data
-  const newDataIds: Set<string> = new Set(
+  const newDataIds = new Set<string>(
     data
       .map((dataDoc) => dataDoc._id)
       .filter((id) => (currentIds?.size ? !localCurrentIds.has(id) : Boolean(id)))
@@ -36,25 +39,29 @@ export async function getDocumentsInArray(
 
   if (newDataIds.size) {
     collection.push(...data)
+    // @ts-ignore
     localCurrentIds.add(...newDataIds)
 
     // Check new data for more references
     await Promise.all(
       data.map(async (doc) => {
         const expr = `.._ref`
-        const references = extract(expr, doc)
+        const references: string[] = extractWithPath(expr, doc).map((ref) => ref.value as string)
 
         if (references.length) {
           // Find references not already in the Collection
-          const newReferenceIds = new Set(references.filter((refId) => !localCurrentIds.has(refId)))
+          const newReferenceIds = new Set<string>(
+            references.filter((ref) => !localCurrentIds.has(ref))
+          )
 
           if (newReferenceIds.size) {
-            // Recusive query for new documents
-            const referenceDocs = await getDocumentsInArray(
-              Array.from(newReferenceIds),
+            // Recursive query for new documents
+            const referenceDocs = await getDocumentsInArray({
+              fetchIds: Array.from(newReferenceIds),
+              // @ts-ignore
+              currentIds: Array.from(localCurrentIds),
               client,
-              localCurrentIds
-            )
+            })
 
             if (referenceDocs?.length) {
               collection.push(...referenceDocs)
@@ -67,7 +74,7 @@ export async function getDocumentsInArray(
 
   // Create a unique array of objects from collection
   // Set() wasn't working for unique id's ¯\_(ツ)_/¯
-  const uniqueCollection = collection.filter(Boolean).reduce((acc, cur) => {
+  const uniqueCollection = collection.filter(Boolean).reduce((acc: SanityDocument[], cur) => {
     if (acc.some((doc) => doc._id === cur._id)) {
       return acc
     }
