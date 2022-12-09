@@ -40,9 +40,10 @@ import Feedback from './Feedback'
 import {clientConfig} from '../helpers/clientConfig'
 import {PluginConfig} from '../types'
 
-export type DuplicatorToolProps = {
+export type DuplicatorProps = {
   docs: SanityDocument[]
-  draftIds: string[]
+  // TODO: Find out if this is even used?
+  // draftIds: string[]
   token: string
   pluginConfig: PluginConfig
 }
@@ -63,8 +64,8 @@ type Message = {
   tone: CardTone
 }
 
-export default function DuplicatorTool(props: DuplicatorToolProps) {
-  const {docs, draftIds, token, pluginConfig} = props
+export default function Duplicator(props: DuplicatorProps) {
+  const {docs, token, pluginConfig} = props
   const isDarkMode = useTheme().sanity.color.dark
 
   // Prepare origin (this Studio) client
@@ -84,16 +85,8 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
     workspaces.length ? workspacesOptions.find((space) => !space.disabled) ?? null : null
   )
   const [message, setMessage] = useState<Message | null>(null)
-  const [payload, setPayload] = useState<PayloadItem[]>(
-    docs.length
-      ? docs.map((item) => ({
-          doc: item,
-          include: true,
-          status: undefined,
-          hasDraft: draftIds?.length ? draftIds.includes(`drafts.${item._id}`) : false,
-        }))
-      : []
-  )
+  const [payload, setPayload] = useState<PayloadItem[]>([])
+
   const [hasReferences, setHasReferences] = useState(false)
   const [isDuplicating, setIsDuplicating] = useState(false)
   const [isGathering, setIsGathering] = useState(false)
@@ -130,7 +123,7 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
   // (On initial render + select change)
   useEffect(() => {
     updatePayloadStatuses()
-  }, [destination, docs])
+  }, [destination])
 
   // Check if payload documents exist at destination
   async function updatePayloadStatuses(newPayload: PayloadItem[] = []) {

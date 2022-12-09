@@ -1,20 +1,29 @@
 import React, {useState, useEffect} from 'react'
 import {Grid, Card, Container, Button} from '@sanity/ui'
 import {SanityDocument, useClient} from 'sanity'
-import type {DuplicatorToolProps} from './DuplicatorTool'
-import DuplicatorTool from './DuplicatorTool'
 
-export default function DuplicatorToolWrapper(props: DuplicatorToolProps) {
+import type {DuplicatorProps} from './Duplicator'
+import Duplicator from './Duplicator'
+
+export default function DuplicatorWrapper(props: DuplicatorProps) {
   const {docs, token, pluginConfig} = props
-  const [mode, setMode] = useState('outbound')
   const [inbound, setInbound] = useState<SanityDocument[]>([])
   const {follow = []} = pluginConfig
+
+  // Make the first mode the default if there's only one
+  const [mode, setMode] = useState<'inbound' | 'outbound'>(
+    follow.length === 1 ? follow[0] : `outbound`
+  )
   const client = useClient()
 
+  // "Inbound" will start with all documents that reference the first one
+  // And then you can gather "Outbound" references thereafter
   useEffect(() => {
     ;(async () => {
-      const inboundReferences = await client.fetch(`*[references($id)]`, {id: docs[0]._id})
-      setInbound([...props.docs, ...inboundReferences])
+      if (follow.includes(`inbound`)) {
+        const inboundReferences = await client.fetch(`*[references($id)]`, {id: docs[0]._id})
+        setInbound([...props.docs, ...inboundReferences])
+      }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -46,10 +55,10 @@ export default function DuplicatorToolWrapper(props: DuplicatorToolProps) {
           </Grid>
         </Card>
       ) : null}
-      <DuplicatorTool
+      <Duplicator
         docs={mode === 'outbound' ? docs : inbound}
         token={token}
-        draftIds={[]}
+        // draftIds={[]}
         pluginConfig={pluginConfig}
       />
     </Container>

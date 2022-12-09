@@ -4,7 +4,7 @@ import {Flex, Box, Spinner} from '@sanity/ui'
 import {SanityDocument, Tool} from 'sanity'
 
 import DuplicatorQuery from './DuplicatorQuery'
-import DuplicatorToolWrapper from './DuplicatorToolWrapper'
+import DuplicatorWrapper from './DuplicatorWrapper'
 import ResetSecret from './ResetSecret'
 import Feedback from './Feedback'
 import {SECRET_NAMESPACE} from '../helpers/constants'
@@ -86,11 +86,11 @@ export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProp
   }
 
   return (
-    <DuplicatorToolWrapper
+    <DuplicatorWrapper
       docs={docs}
       token={secrets?.bearerToken}
       pluginConfig={pluginConfig}
-      draftIds={[]}
+      // draftIds={[]}
     />
   )
 }

@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react'
 import {Button, Stack, Box, Label, Text, Card, Flex, Grid, Container, TextInput} from '@sanity/ui'
 import {useSchema, useClient, SanityDocument} from 'sanity'
 
-import DuplicatorTool from './DuplicatorTool'
+import Duplicator from './Duplicator'
 import {clientConfig} from '../helpers/clientConfig'
 import {PluginConfig} from '../types'
 
@@ -13,7 +13,7 @@ type DuplicatorQueryProps = {
 
 type InitialData = {
   docs: SanityDocument[]
-  draftIds: string[]
+  // draftIds: string[]
 }
 
 export default function DuplicatorQuery(props: DuplicatorQueryProps) {
@@ -25,7 +25,10 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
   const schemaTypes = schema.getTypeNames()
 
   const [value, setValue] = useState(``)
-  const [initialData, setInitialData] = useState<InitialData>({docs: [], draftIds: []})
+  const [initialData, setInitialData] = useState<InitialData>({
+    docs: [],
+    // draftIds: []
+  })
 
   function handleSubmit(e?: any) {
     if (e) e.preventDefault()
@@ -39,11 +42,14 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
               .filter((doc) => schemaTypes.includes(doc._type))
               .filter((doc) => !doc._id.startsWith(`drafts.`))
           : []
-        const initialDraftIds = res.length
-          ? res.filter((doc) => doc._id.startsWith(`drafts.`)).map((doc) => doc._id)
-          : []
+        // const initialDraftIds = res.length
+        //   ? res.filter((doc) => doc._id.startsWith(`drafts.`)).map((doc) => doc._id)
+        //   : []
 
-        setInitialData({docs: registeredAndPublishedDocs, draftIds: initialDraftIds})
+        setInitialData({
+          docs: registeredAndPublishedDocs,
+          // draftIds: initialDraftIds
+        })
       })
       .catch((err) => console.error(err))
   }
@@ -108,9 +114,9 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
             </Container>
           ))}
         {initialData.docs?.length > 0 && (
-          <DuplicatorTool
+          <Duplicator
             docs={initialData.docs}
-            draftIds={initialData.draftIds}
+            // draftIds={initialData.draftIds}
             token={token}
             pluginConfig={pluginConfig}
           />

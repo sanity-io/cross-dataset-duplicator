@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import {Button, Card, Flex} from '@sanity/ui'
 
-import {PayloadItem} from './DuplicatorTool'
+import {PayloadItem} from './Duplicator'
 import {isAssetId} from '@sanity/asset-utils'
 
 const buttons = [`All`, `None`, null, `New`, `Existing`, `Older`, null, `Documents`, `Assets`]

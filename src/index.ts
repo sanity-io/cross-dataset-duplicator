@@ -28,7 +28,7 @@ export const crossDatasetDuplicator = definePlugin<PluginConfig | void>((config 
     document: {
       actions: (prev, {schemaType}) => {
         return types && types.includes(schemaType)
-          ? [(props: DocumentActionProps) => DuplicateToAction({...props, pluginConfig}), ...prev]
+          ? [...prev, (props: DocumentActionProps) => DuplicateToAction({...props, pluginConfig})]
           : prev
       },
     },
