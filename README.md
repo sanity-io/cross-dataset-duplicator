@@ -62,8 +62,10 @@ The plugin has some configuration options. These can be set by adding a config f
   plugins: [
     // all other plugins...
     crossDatasetDuplicator({
-      tool: true,
+      // Required settings to show document action
       types: ['article', 'page'],
+      // Optional settings
+      tool: true,
       filter: '_type != "product"',
       follow: []
     })
