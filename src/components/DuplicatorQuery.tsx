@@ -4,11 +4,11 @@ import {useSchema, useClient, SanityDocument} from 'sanity'
 
 import DuplicatorTool from './DuplicatorTool'
 import {clientConfig} from '../helpers/clientConfig'
-import {PluginConfig} from '..'
+import {PluginConfig} from '../types'
 
 type DuplicatorQueryProps = {
   token: string
-  config: PluginConfig
+  pluginConfig: PluginConfig
 }
 
 type InitialData = {
@@ -17,7 +17,7 @@ type InitialData = {
 }
 
 export default function DuplicatorQuery(props: DuplicatorQueryProps) {
-  const {token, config} = props
+  const {token, pluginConfig} = props
 
   const originClient = useClient(clientConfig)
 
@@ -60,7 +60,7 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
     <Container width={[1, 1, 1, 3]} padding={[0, 0, 0, 5]}>
       <Grid columns={[1, 1, 1, 2]} gap={[1, 1, 1, 4]}>
         <Box padding={[2, 2, 2, 0]}>
-          <Card padding={4} scheme="dark" radius={3}>
+          <Card padding={4} radius={3} border>
             <Stack space={4}>
               <Box>
                 <Label>Initial Documents Query</Label>
@@ -112,7 +112,7 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
             docs={initialData.docs}
             draftIds={initialData.draftIds}
             token={token}
-            config={config}
+            pluginConfig={pluginConfig}
           />
         )}
       </Grid>

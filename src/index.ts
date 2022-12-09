@@ -1,12 +1,10 @@
-import {definePlugin} from 'sanity'
-import DuplicateToAction from './actions/DuplicateToAction'
+import {definePlugin, DocumentActionProps} from 'sanity'
 
-export interface PluginConfig {
-  tool?: boolean
-  types?: string[]
-  filter?: string
-  follow?: ('inbound' | 'outbound')[]
-}
+import DuplicateToAction from './actions/DuplicateToAction'
+import {crossDatasetDuplicatorTool} from './tool'
+import {PluginConfig} from './types'
+
+export * from './types'
 
 const DEFAULT_CONFIG: PluginConfig = {
   tool: true,
@@ -15,14 +13,23 @@ const DEFAULT_CONFIG: PluginConfig = {
   follow: ['outbound'],
 }
 
+/**
+ * @sanity/cross-dataset-duplicator
+ * @public
+ */
 export const crossDatasetDuplicator = definePlugin<PluginConfig | void>((config = {}) => {
-  const {types} = {...DEFAULT_CONFIG, ...config}
+  const pluginConfig = {...DEFAULT_CONFIG, ...config}
+  const {types} = pluginConfig
 
   return {
     name: '@sanity/cross-dataset-duplicator',
+    tools: (prev) =>
+      pluginConfig.tool ? [...prev, crossDatasetDuplicatorTool(pluginConfig)] : prev,
     document: {
       actions: (prev, {schemaType}) => {
-        return types && types.includes(schemaType) ? [DuplicateToAction, ...prev] : prev
+        return types && types.includes(schemaType)
+          ? [(props: DocumentActionProps) => DuplicateToAction({...props, pluginConfig}), ...prev]
+          : prev
       },
     },
   }

@@ -4,7 +4,26 @@
   "description": "Empower content editors to migrate Documents and Assets between Sanity Projects and Datasets from inside Sanity Studio",
   "author": "Sanity.io <hello@sanity.io>",
   "license": "MIT",
-  "main": "./lib/cjs/index.js",
+  "exports": {
+    ".": {
+      "types": "./lib/src/index.d.ts",
+      "source": "./src/index.ts",
+      "import": "./lib/index.esm.js",
+      "require": "./lib/index.js",
+      "default": "./lib/index.esm.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./lib/index.js",
+  "module": "./lib/index.esm.js",
+  "source": "./src/index.ts",
+  "types": "./lib/src/index.d.ts",
+  "files": [
+    "src",
+    "lib",
+    "v2-incompatible.js",
+    "sanity.json"
+  ],
   "scripts": {
     "prebuild": "npm run clean && plugin-kit verify-package --silent && pkg-utils",
     "build": "pkg-utils build",
@@ -33,10 +52,10 @@
     "@sanity/icons": "^2.1.0",
     "@sanity/incompatible-plugin": "^1.0.4",
     "@sanity/mutator": "^3.0.6",
+    "@sanity/studio-secrets": "^2.0.2",
     "@sanity/ui": "^1.0.0",
     "async": "^3.2.1",
     "dset": "^3.1.0",
-    "sanity-secrets": "^0.1.0",
     "styled-components": "^5.3.3"
   },
   "devDependencies": {
@@ -72,35 +91,6 @@
     "url": "https://github.com/sanity-io/cross-dataset-duplicator/issues"
   },
   "homepage": "https://github.com/sanity-io/cross-dataset-duplicator#readme",
-  "prettier": {
-    "semi": false,
-    "printWidth": 100,
-    "bracketSpacing": false,
-    "singleQuote": true
-  },
-  "eslintConfig": {
-    "parser": "sanipack/babel/eslint-parser",
-    "extends": [
-      "sanity",
-      "sanity/react",
-      "prettier"
-    ]
-  },
-  "source": "./src/index.ts",
-  "module": "./lib/esm/index.js",
-  "types": "./lib/types/index.d.ts",
-  "exports": {
-    ".": {
-      "require": "./lib/cjs/index.js",
-      "default": "./lib/esm/index.js"
-    }
-  },
-  "files": [
-    "src",
-    "lib",
-    "v2-incompatible.js",
-    "sanity.json"
-  ],
   "engines": {
     "node": ">=14.0.0"
   }

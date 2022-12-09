@@ -5,10 +5,10 @@ import type {DuplicatorToolProps} from './DuplicatorTool'
 import DuplicatorTool from './DuplicatorTool'
 
 export default function DuplicatorToolWrapper(props: DuplicatorToolProps) {
-  const {docs, token, config} = props
+  const {docs, token, pluginConfig} = props
   const [mode, setMode] = useState('outbound')
   const [inbound, setInbound] = useState<SanityDocument[]>([])
-  const {follow = []} = config
+  const {follow = []} = pluginConfig
   const client = useClient()
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function DuplicatorToolWrapper(props: DuplicatorToolProps) {
 
   return (
     <Container>
-      {follow.includes(`inbound`) || follow.includes(`outbound`) ? (
+      {follow.length > 1 && (follow.includes(`inbound`) || follow.includes(`outbound`)) ? (
         <Card paddingX={4} paddingBottom={4} marginBottom={4} borderBottom>
           <Grid columns={2} gap={4}>
             {follow.includes(`outbound`) ? (
@@ -50,7 +50,7 @@ export default function DuplicatorToolWrapper(props: DuplicatorToolProps) {
         docs={mode === 'outbound' ? docs : inbound}
         token={token}
         draftIds={[]}
-        config={config}
+        pluginConfig={pluginConfig}
       />
     </Container>
   )

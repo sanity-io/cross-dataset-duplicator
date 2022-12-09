@@ -1,14 +1,14 @@
 import React, {useEffect, useState} from 'react'
-import {useSecrets, SettingsView} from 'sanity-secrets'
+import {useSecrets, SettingsView} from '@sanity/studio-secrets'
 import {Flex, Box, Spinner} from '@sanity/ui'
+import {SanityDocument, Tool} from 'sanity'
 
 import DuplicatorQuery from './DuplicatorQuery'
 import DuplicatorToolWrapper from './DuplicatorToolWrapper'
 import ResetSecret from './ResetSecret'
 import Feedback from './Feedback'
 import {SECRET_NAMESPACE} from '../helpers/constants'
-import {PluginConfig} from '..'
-import {SanityDocument} from 'sanity'
+import {PluginConfig} from '../types'
 
 // Check for auth secret (required for asset uploads)
 const secretConfigKeys = [
@@ -20,18 +20,22 @@ const secretConfigKeys = [
   },
 ]
 
-type CrossDatasetDuplicatorProps = {
-  mode: 'tool' | 'action'
-  docs: SanityDocument[]
-  config: PluginConfig
-}
-
 type Secrets = {
   bearerToken?: string
 }
 
+export type MultiToolConfig = {
+  mode: 'tool' | 'action'
+  docs: SanityDocument[]
+  pluginConfig: PluginConfig
+}
+
+type CrossDatasetDuplicatorProps = {
+  tool: Tool<MultiToolConfig>
+}
+
 export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProps) {
-  const {mode = `tool`, docs = [], config} = props
+  const {mode = `tool`, docs = [], pluginConfig} = props.tool.options ?? {}
 
   const {loading, secrets} = useSecrets<Secrets>(SECRET_NAMESPACE)
   const [showSecretsPrompt, setShowSecretsPrompt] = useState(false)
@@ -52,14 +56,6 @@ export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProp
     )
   }
 
-  if (!secrets) {
-    return (
-      <Feedback>
-        Could not query for Secrets. You may have insufficient permissions on your account.
-      </Feedback>
-    )
-  }
-
   if ((!loading && showSecretsPrompt) || !secrets?.bearerToken) {
     return (
       <SettingsView
@@ -72,10 +68,10 @@ export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProp
     )
   }
 
-  if (mode === 'tool') {
+  if (mode === 'tool' && pluginConfig) {
     return (
       <>
-        <DuplicatorQuery token={secrets?.bearerToken} config={config} />
+        <DuplicatorQuery token={secrets?.bearerToken} pluginConfig={pluginConfig} />
         <ResetSecret />
       </>
     )
@@ -85,7 +81,16 @@ export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProp
     return <Feedback>No docs passed into Duplicator Tool</Feedback>
   }
 
+  if (!pluginConfig) {
+    return <Feedback>No plugin config</Feedback>
+  }
+
   return (
-    <DuplicatorToolWrapper docs={docs} token={secrets?.bearerToken} config={config} draftIds={[]} />
+    <DuplicatorToolWrapper
+      docs={docs}
+      token={secrets?.bearerToken}
+      pluginConfig={pluginConfig}
+      draftIds={[]}
+    />
   )
 }

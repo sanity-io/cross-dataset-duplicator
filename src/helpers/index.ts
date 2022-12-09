@@ -11,9 +11,9 @@ export function createInitialMessage(docCount = 0, refsCount = 0): string {
   return message.join(` `)
 }
 
-export const stickyStyles = {
+export const stickyStyles = (isDarkMode = true): CSSProperties => ({
   position: 'sticky',
   top: 0,
   zIndex: 100,
-  backgroundColor: `rgba(255,255,255,0.95)`,
-} as CSSProperties
+  backgroundColor: isDarkMode ? `rgba(10,10,10,0.95)` : `rgba(255,255,255,0.95)`,
+})

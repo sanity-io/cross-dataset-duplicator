@@ -1,11 +1,11 @@
 import {extractWithPath} from '@sanity/mutator'
 import {SanityClient, SanityDocument} from 'sanity'
-import {PluginConfig} from '..'
+import {PluginConfig} from '../types'
 
 type OptionsBag = {
   fetchIds: string[]
   client: SanityClient
-  config: PluginConfig
+  pluginConfig: PluginConfig
   currentIds?: Set<string> | null
   projection?: string
 }
@@ -13,11 +13,11 @@ type OptionsBag = {
 // Recursively fetch Documents from an array of _id's and their references
 // Heavy use of Set is to avoid recursively querying for id's already in the payload
 export async function getDocumentsInArray(options: OptionsBag): Promise<SanityDocument[]> {
-  const {fetchIds, client, config, currentIds, projection} = options
+  const {fetchIds, client, pluginConfig, currentIds, projection} = options
   const collection: SanityDocument[] = []
 
   // Find initial docs
-  const filter = ['_id in $fetchIds', config.filter].filter(Boolean).join(' && ')
+  const filter = ['_id in $fetchIds', pluginConfig.filter].filter(Boolean).join(' && ')
   const query = `*[${filter}]${projection ?? ``}`
   const data: SanityDocument[] = await client.fetch(query, {
     fetchIds: fetchIds ?? [],
@@ -58,9 +58,9 @@ export async function getDocumentsInArray(options: OptionsBag): Promise<SanityDo
             // Recursive query for new documents
             const referenceDocs = await getDocumentsInArray({
               fetchIds: Array.from(newReferenceIds),
-              // @ts-ignore
-              currentIds: Array.from(localCurrentIds),
+              currentIds: localCurrentIds,
               client,
+              pluginConfig,
             })
 
             if (referenceDocs?.length) {

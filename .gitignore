@@ -57,3 +57,5 @@ test/fixtures/init/empty
 # Compiled plugin
 lib
 
+.yalc
+yalc.lock

@@ -26,6 +26,7 @@ import {
   Flex,
   Checkbox,
   CardTone,
+  useTheme,
 } from '@sanity/ui'
 import {ArrowRightIcon, SearchIcon, LaunchIcon} from '@sanity/icons'
 import {SanityAssetDocument} from '@sanity/client'
@@ -37,13 +38,13 @@ import SelectButtons from './SelectButtons'
 import StatusBadge, {MessageTypes} from './StatusBadge'
 import Feedback from './Feedback'
 import {clientConfig} from '../helpers/clientConfig'
-import {PluginConfig} from '..'
+import {PluginConfig} from '../types'
 
 export type DuplicatorToolProps = {
   docs: SanityDocument[]
   draftIds: string[]
   token: string
-  config: PluginConfig
+  pluginConfig: PluginConfig
 }
 
 export type PayloadItem = {
@@ -63,7 +64,8 @@ type Message = {
 }
 
 export default function DuplicatorTool(props: DuplicatorToolProps) {
-  const {docs, draftIds, token, config} = props
+  const {docs, draftIds, token, pluginConfig} = props
+  const isDarkMode = useTheme().sanity.color.dark
 
   // Prepare origin (this Studio) client
   const originClient = useClient(clientConfig)
@@ -192,12 +194,16 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
     setIsGathering(true)
     const docIds = docs.map((doc) => doc._id)
 
-    const payloadDocs = await getDocumentsInArray({fetchIds: docIds, client: originClient, config})
+    const payloadDocs = await getDocumentsInArray({
+      fetchIds: docIds,
+      client: originClient,
+      pluginConfig,
+    })
     const draftDocs = await getDocumentsInArray({
       fetchIds: docIds.map((id) => `drafts.${id}`),
       client: originClient,
       projection: `{_id}`,
-      config,
+      pluginConfig,
     })
     const draftDocsIds = new Set(draftDocs.map(({_id}) => _id))
 
@@ -411,10 +417,10 @@ export default function DuplicatorTool(props: DuplicatorToolProps) {
 
   return (
     <Container width={1}>
-      <Card>
+      <Card border>
         <Stack>
           <>
-            <Card borderBottom padding={4} style={stickyStyles}>
+            <Card borderBottom padding={4} style={stickyStyles(isDarkMode)}>
               <Stack space={4}>
                 <Flex gap={3}>
                   <Stack style={{flex: 1}} space={3}>
