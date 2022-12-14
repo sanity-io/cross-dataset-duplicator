@@ -1,4 +1,6 @@
-# Cross Dataset Duplicator
+# Cross Dataset Duplicator (for Sanity Studio v2)
+
+> This is the Sanity Studio v2 version of the plugin. For the Sanity Studio v3 version, see [@sanity/cross-dataset-duplicator](https://github.com/sanity-io/cross-dataset-duplicator)
 
 Sanity Studio Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
 
