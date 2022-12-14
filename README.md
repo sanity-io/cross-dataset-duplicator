@@ -19,9 +19,9 @@ This plugin is designed as a convenience for Authors to make small, infrequent c
 
 - This plugin should be used in conjunction with a reliable backup strategy.
 - Proceed with caution as this plugin can instantly write changes to Datasets.
-- Larger migrations may take more time, especially with Assets. The plugin tries to mitigate this by rate limiting asset uploads to 3 at a time.
+- Larger migrations may take more time, especially with Assets. Trying to upload them all at once could result in a rate-limiting issue, so the plugin mitigates this by limiting simultaneous asset uploads to 3.
 - If an Asset is already present at the destination, there's no need to duplicate it again.
-- Before starting a Duplication you can select which Documents and Assets to include. Migrations will fail if every Referenced Document or Asset is not included in the transaction or already present at the destination Dataset.
+- Before starting a Duplication you can select which Documents and Assets to include. Migrations will fail if every Referenced Document or Asset is not included in the transaction or is already present at the destination Dataset.
 
 ## Tool
 
@@ -35,17 +35,15 @@ The **Duplicate to...** Document Action allows you to migrate an individual Docu
 
 ![Cross Dataset Duplicator Action in Sanity Studio v3](./img/cdd-action.png)
 
-**Note:** If your Studio registered its own Document Actions, the plugin config will be overruled. See "Importing the Document Action" below.
-
 ## Required Setup
 
 ### 1. Workspaces
 
 You must have more than one [Workspace configured](https://www.sanity.io/docs/config-api-reference#37c85e3072b2) to use this plugin. 
 
-All Datasets and Project ID's setup as Workspaces will become selectable "destinations" for Migrations.
+All Datasets and Project IDs set up as Workspaces will become selectable "destinations" for Migrations.
 
-Once setup, you will see a dropdown menu next to the Search bar in the Studio with the Datasets you have configured.
+Once set up, you will see a dropdown menu next to the Search bar in the Studio with the Datasets you have configured.
 
 ### 2. Configuration
 
