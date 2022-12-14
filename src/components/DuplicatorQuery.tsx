@@ -1,40 +1,55 @@
 import React, {useEffect, useState} from 'react'
-import sanityClient from 'part:@sanity/base/client'
-import schema from 'part:@sanity/base/schema'
 import {Button, Stack, Box, Label, Text, Card, Flex, Grid, Container, TextInput} from '@sanity/ui'
+import {useSchema, useClient, SanityDocument} from 'sanity'
 
-import DuplicatorTool from './DuplicatorTool'
+import Duplicator from './Duplicator'
 import {clientConfig} from '../helpers/clientConfig'
-
-const originClient = sanityClient.withConfig(clientConfig)
+import {PluginConfig} from '../types'
 
 type DuplicatorQueryProps = {
   token: string
+  pluginConfig: PluginConfig
 }
 
-const schemaTypes = schema.getTypeNames()
+type InitialData = {
+  docs: SanityDocument[]
+  // draftIds: string[]
+}
 
 export default function DuplicatorQuery(props: DuplicatorQueryProps) {
-  const {token} = props
+  const {token, pluginConfig} = props
+
+  const originClient = useClient(clientConfig)
+
+  const schema = useSchema()
+  const schemaTypes = schema.getTypeNames()
 
   const [value, setValue] = useState(``)
-  const [initialData, setInitialData] = useState({docs: [], draftIds: []});
+  const [initialData, setInitialData] = useState<InitialData>({
+    docs: [],
+    // draftIds: []
+  })
 
   function handleSubmit(e?: any) {
     if (e) e.preventDefault()
 
     originClient
       .fetch(value)
-      .then((res) => {
+      .then((res: SanityDocument[]) => {
         // Ensure queried docs are registered to the schema
         const registeredAndPublishedDocs = res.length
           ? res
               .filter((doc) => schemaTypes.includes(doc._type))
               .filter((doc) => !doc._id.startsWith(`drafts.`))
           : []
-        const initialDraftIds = res.length ? res.filter(doc => doc._id.startsWith(`drafts.`)).map(doc => doc._id) : []
+        // const initialDraftIds = res.length
+        //   ? res.filter((doc) => doc._id.startsWith(`drafts.`)).map((doc) => doc._id)
+        //   : []
 
-        setInitialData({docs: registeredAndPublishedDocs, draftIds: initialDraftIds})
+        setInitialData({
+          docs: registeredAndPublishedDocs,
+          // draftIds: initialDraftIds
+        })
       })
       .catch((err) => console.error(err))
   }
@@ -44,13 +59,14 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
     if (!initialData.docs?.length && value) {
       handleSubmit()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
     <Container width={[1, 1, 1, 3]} padding={[0, 0, 0, 5]}>
       <Grid columns={[1, 1, 1, 2]} gap={[1, 1, 1, 4]}>
         <Box padding={[2, 2, 2, 0]}>
-          <Card padding={4} scheme="dark" radius={3}>
+          <Card padding={4} radius={3} border>
             <Stack space={4}>
               <Box>
                 <Label>Initial Documents Query</Label>
@@ -97,7 +113,14 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
               </Card>
             </Container>
           ))}
-        {initialData.docs?.length > 0 && <DuplicatorTool docs={initialData.docs} draftIds={initialData.draftIds} token={token} />}
+        {initialData.docs?.length > 0 && (
+          <Duplicator
+            docs={initialData.docs}
+            // draftIds={initialData.draftIds}
+            token={token}
+            pluginConfig={pluginConfig}
+          />
+        )}
       </Grid>
     </Container>
   )

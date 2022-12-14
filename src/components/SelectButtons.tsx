@@ -1,9 +1,12 @@
 import React, {useState, useEffect} from 'react'
 import {Button, Card, Flex} from '@sanity/ui'
-import {typeIsAsset} from '../helpers'
-import {PayloadItem} from '../types'
+
+import {PayloadItem} from './Duplicator'
+import {isAssetId} from '@sanity/asset-utils'
 
 const buttons = [`All`, `None`, null, `New`, `Existing`, `Older`, null, `Documents`, `Assets`]
+
+type Action = 'ALL' | 'NONE' | 'NEW' | 'EXISTING' | 'OLDER' | 'ASSETS' | 'DOCUMENTS'
 
 type SelectButtonsProps = {
   payload: PayloadItem[]
@@ -12,16 +15,16 @@ type SelectButtonsProps = {
 
 export default function SelectButtons(props: SelectButtonsProps) {
   const {payload, setPayload} = props
-  const [disabledActions, setDisabledActions] = useState([])
+  const [disabledActions, setDisabledActions] = useState<Action[]>([])
 
   // Set intiial disabled button
   useEffect(() => {
     if (!disabledActions?.length && payload.every((item) => item.include)) {
       setDisabledActions([`ALL`])
     }
-  }, [])
+  }, [disabledActions?.length, payload])
 
-  function handleSelectButton(action = ``) {
+  function handleSelectButton(action?: Action) {
     if (!action || !payload.length) return
 
     const newPayload = [...payload]
@@ -43,10 +46,10 @@ export default function SelectButtons(props: SelectButtonsProps) {
         newPayload.map((item) => (item.include = Boolean(item.status === 'OVERWRITE')))
         break
       case 'ASSETS':
-        newPayload.map((item) => (item.include = typeIsAsset(item.doc._type)))
+        newPayload.map((item) => (item.include = isAssetId(item.doc._id)))
         break
       case 'DOCUMENTS':
-        newPayload.map((item) => (item.include = !typeIsAsset(item.doc._type)))
+        newPayload.map((item) => (item.include = !isAssetId(item.doc._id)))
         break
       default:
         break
@@ -67,10 +70,11 @@ export default function SelectButtons(props: SelectButtonsProps) {
               mode="bleed"
               padding={2}
               text={action}
-              disabled={disabledActions.includes(action.toUpperCase())}
-              onClick={() => handleSelectButton(action.toUpperCase())}
+              disabled={disabledActions.includes(action.toUpperCase() as Action)}
+              onClick={() => handleSelectButton(action.toUpperCase() as Action)}
             />
           ) : (
+            // eslint-disable-next-line react/no-array-index-key
             <Card key={`divider-${actionIndex}`} borderLeft />
           )
         )}

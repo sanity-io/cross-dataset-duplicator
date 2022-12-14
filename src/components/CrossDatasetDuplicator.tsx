@@ -1,13 +1,14 @@
 import React, {useEffect, useState} from 'react'
-import {useSecrets, SettingsView} from 'sanity-secrets'
-import {ThemeProvider, Flex, Box, Spinner} from '@sanity/ui'
+import {useSecrets, SettingsView} from '@sanity/studio-secrets'
+import {Flex, Box, Spinner} from '@sanity/ui'
+import {SanityDocument, Tool} from 'sanity'
 
 import DuplicatorQuery from './DuplicatorQuery'
-import {DuplicatorToolWrapper} from './DuplicatorTool'
+import DuplicatorWrapper from './DuplicatorWrapper'
 import ResetSecret from './ResetSecret'
 import Feedback from './Feedback'
-import {SanityDocument} from '../types'
 import {SECRET_NAMESPACE} from '../helpers/constants'
+import {PluginConfig} from '../types'
 
 // Check for auth secret (required for asset uploads)
 const secretConfigKeys = [
@@ -19,20 +20,24 @@ const secretConfigKeys = [
   },
 ]
 
-type CrossDatasetDuplicatorProps = {
-  mode: 'tool' | 'action'
-  docs: SanityDocument[]
-}
-
 type Secrets = {
   bearerToken?: string
 }
 
-export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProps) {
-  const {mode = `tool`, docs = []} = props
+export type MultiToolConfig = {
+  mode: 'tool' | 'action'
+  docs: SanityDocument[]
+  pluginConfig: PluginConfig
+}
 
-  const secretsData = useSecrets(SECRET_NAMESPACE)
-  const {loading, secrets}: {loading: boolean; secrets: Secrets} = secretsData
+type CrossDatasetDuplicatorProps = {
+  tool: Tool<MultiToolConfig>
+}
+
+export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProps) {
+  const {mode = `tool`, docs = [], pluginConfig} = props.tool.options ?? {}
+
+  const {loading, secrets} = useSecrets<Secrets>(SECRET_NAMESPACE)
   const [showSecretsPrompt, setShowSecretsPrompt] = useState(false)
 
   useEffect(() => {
@@ -41,60 +46,51 @@ export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProp
     }
   }, [secrets])
 
-  if (!secretsData) {
-    return (
-      <Feedback>
-        Could not query for Secrets. You may have insufficient permissions on your account.
-      </Feedback>
-    )
-  }
-
   if (loading) {
     return (
-      <ThemeProvider>
-        <Flex justify="center" align="center">
-          <Box padding={5}>
-            <Spinner />
-          </Box>
-        </Flex>
-      </ThemeProvider>
+      <Flex justify="center" align="center">
+        <Box padding={5}>
+          <Spinner />
+        </Box>
+      </Flex>
     )
   }
 
   if ((!loading && showSecretsPrompt) || !secrets?.bearerToken) {
     return (
-      <ThemeProvider>
-        <SettingsView
-          title="Token Required"
-          namespace={SECRET_NAMESPACE}
-          keys={secretConfigKeys}
-          // eslint-disable-next-line react/jsx-no-bind
-          onClose={() => setShowSecretsPrompt(false)}
-        />
-      </ThemeProvider>
+      <SettingsView
+        title="Token Required"
+        namespace={SECRET_NAMESPACE}
+        keys={secretConfigKeys}
+        // eslint-disable-next-line react/jsx-no-bind
+        onClose={() => setShowSecretsPrompt(false)}
+      />
     )
   }
 
-  if (mode === 'tool') {
+  if (mode === 'tool' && pluginConfig) {
     return (
-      <ThemeProvider>
-        <DuplicatorQuery token={secrets?.bearerToken} />
+      <>
+        <DuplicatorQuery token={secrets?.bearerToken} pluginConfig={pluginConfig} />
         <ResetSecret />
-      </ThemeProvider>
+      </>
     )
   }
 
   if (!docs?.length) {
-    return (
-      <ThemeProvider>
-        <Feedback>No docs passed into Duplicator Tool</Feedback>
-      </ThemeProvider>
-    )
+    return <Feedback>No docs passed into Duplicator Tool</Feedback>
+  }
+
+  if (!pluginConfig) {
+    return <Feedback>No plugin config</Feedback>
   }
 
   return (
-    <ThemeProvider>
-      <DuplicatorToolWrapper docs={docs} token={secrets?.bearerToken} />
-    </ThemeProvider>
+    <DuplicatorWrapper
+      docs={docs}
+      token={secrets?.bearerToken}
+      pluginConfig={pluginConfig}
+      // draftIds={[]}
+    />
   )
 }
