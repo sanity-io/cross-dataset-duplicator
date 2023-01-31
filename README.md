@@ -9,8 +9,14 @@ Sanity Studio Tool and Document Action for empowering content editors to migrate
 From the root directory of your studio
 
 ```
-sanity install @sanity/cross-dataset-duplicator@0.4.0
+yarn add @sanity/cross-dataset-duplicator@0.4.0
 ```
+
+Next, add "@sanity/cross-dataset-duplicator" to sanity.json plugins array:
+
+"plugins": [
+  "@sanity/cross-dataset-duplicator"
+]
 
 ### Important Notes
 
