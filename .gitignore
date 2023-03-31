@@ -49,13 +49,12 @@ jspm_packages
 # Cache
 .cache
 
-# Parcel
-.parcel-cache
-
-test/fixtures/init/empty
-
-# Compiled plugin
-lib
-
+# Yalc
 .yalc
 yalc.lock
+
+# npm package zips
+*.tgz
+
+# Compiled plugin
+dist
