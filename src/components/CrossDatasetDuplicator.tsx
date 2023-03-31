@@ -8,7 +8,7 @@ import DuplicatorWrapper from './DuplicatorWrapper'
 import ResetSecret from './ResetSecret'
 import Feedback from './Feedback'
 import {SECRET_NAMESPACE} from '../helpers/constants'
-import {PluginConfig} from '../types'
+import {useCrossDatasetDuplicatorConfig} from '../context/ConfigProvider'
 
 // Check for auth secret (required for asset uploads)
 const secretConfigKeys = [
@@ -27,7 +27,6 @@ type Secrets = {
 export type MultiToolConfig = {
   mode: 'tool' | 'action'
   docs: SanityDocument[]
-  pluginConfig: PluginConfig
 }
 
 type CrossDatasetDuplicatorProps = {
@@ -35,7 +34,8 @@ type CrossDatasetDuplicatorProps = {
 }
 
 export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProps) {
-  const {mode = `tool`, docs = [], pluginConfig} = props.tool.options ?? {}
+  const {mode = `tool`, docs = []} = props.tool.options ?? {}
+  const pluginConfig = useCrossDatasetDuplicatorConfig()
 
   const {loading, secrets} = useSecrets<Secrets>(SECRET_NAMESPACE)
   const [showSecretsPrompt, setShowSecretsPrompt] = useState(false)

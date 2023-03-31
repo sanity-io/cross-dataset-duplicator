@@ -1,18 +1,11 @@
 import React, {useState} from 'react'
 import {LaunchIcon} from '@sanity/icons'
 import {DocumentActionProps} from 'sanity'
-import {PluginConfig} from '../types'
 
 import CrossDatasetDuplicator from '../components/CrossDatasetDuplicator'
 
-type DuplicateToActionProps = DocumentActionProps & {pluginConfig: PluginConfig}
-
-export default function DuplicateToAction({
-  draft,
-  published,
-  onComplete,
-  pluginConfig,
-}: DuplicateToActionProps) {
+export function DuplicateToAction(props: DocumentActionProps) {
+  const {draft, published, onComplete} = props
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return {
@@ -32,7 +25,6 @@ export default function DuplicateToAction({
               options: {
                 mode: 'action',
                 docs: [published],
-                pluginConfig,
               },
             }}
           />

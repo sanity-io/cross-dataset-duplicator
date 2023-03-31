@@ -2,9 +2,8 @@ import type {Tool} from 'sanity'
 import {LaunchIcon} from '@sanity/icons'
 
 import CrossDatasetDuplicator, {MultiToolConfig} from '../components/CrossDatasetDuplicator'
-import {PluginConfig} from '../types'
 
-export const crossDatasetDuplicatorTool = (pluginConfig: PluginConfig): Tool<MultiToolConfig> => ({
+export const crossDatasetDuplicatorTool = (): Tool<MultiToolConfig> => ({
   title: 'Duplicator',
   name: 'duplicator',
   icon: LaunchIcon,
@@ -12,6 +11,5 @@ export const crossDatasetDuplicatorTool = (pluginConfig: PluginConfig): Tool<Mul
   options: {
     mode: 'tool',
     docs: [],
-    pluginConfig,
   },
 })
