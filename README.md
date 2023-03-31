@@ -1,13 +1,3 @@
-> This is a **Sanity Studio v3** plugin.
-
-## Installation
-
-```sh
-npm install @sanity/cross-dataset-duplicator
-```
-
-## Usage
-
 # Cross Dataset Duplicator
 
 Sanity Studio v3 Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
