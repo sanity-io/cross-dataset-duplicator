@@ -9,6 +9,10 @@ const CrossDatasetDuplicatorContext = createContext(DEFAULT_CONFIG)
 
 type ConfigProviderProps = LayoutProps & {pluginConfig: PluginConfig}
 
+/**
+ * Plugin config context hook from @sanity/cross-dataset-duplicator
+ * @public
+ */
 export function useCrossDatasetDuplicatorConfig() {
   const pluginConfig = useContext(CrossDatasetDuplicatorContext)
 

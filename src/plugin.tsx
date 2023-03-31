@@ -7,7 +7,7 @@ import {crossDatasetDuplicatorTool} from './tool'
 import {PluginConfig} from './types'
 
 /**
- * @sanity/cross-dataset-duplicator
+ * Plugin: @sanity/cross-dataset-duplicator
  * @public
  */
 export const crossDatasetDuplicator = definePlugin<PluginConfig | void>((config = {}) => {

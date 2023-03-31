@@ -4,6 +4,10 @@ import {DocumentActionProps} from 'sanity'
 
 import CrossDatasetDuplicator from '../components/CrossDatasetDuplicator'
 
+/**
+ * Document action from @sanity/cross-dataset-duplicator
+ * @public
+ */
 export const DuplicateToAction = (props: DocumentActionProps) => {
   const {draft, published, onComplete} = props
   const [dialogOpen, setDialogOpen] = useState(false)
