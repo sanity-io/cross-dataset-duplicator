@@ -1,14 +1,10 @@
 import React from 'react'
-import {SanityDocument} from 'sanity'
+import {CrossDatasetDuplicatorActionProps} from '../types'
 
 import CrossDatasetDuplicator from './CrossDatasetDuplicator'
 
-type CrossDatasetDuplicatorActionProps = {
-  docs: SanityDocument[]
-}
-
 /**
- * Component to perform a migration from @sanity/cross-dataset-duplicator
+ * Component to perform a migration from the Cross Dataset Duplicator plugin
  * @public
  */
 export function CrossDatasetDuplicatorAction(props: CrossDatasetDuplicatorActionProps) {
