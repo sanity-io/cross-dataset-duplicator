@@ -1,3 +1,13 @@
+> This is a **Sanity Studio v3** plugin.
+
+## Installation
+
+```sh
+npm install @sanity/cross-dataset-duplicator
+```
+
+## Usage
+
 # Cross Dataset Duplicator
 
 Sanity Studio v3 Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
@@ -114,3 +124,7 @@ Run ["CI & Release" workflow](https://github.com/sanity-io/cross-dataset-duplica
 Make sure to select the main branch and check "Release new version".
 
 Semantic release will only release on configured branches, so it is safe to run release on any branch.
+
+## License
+
+[MIT](LICENSE) © Sanity.io
