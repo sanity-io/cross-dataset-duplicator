@@ -2,7 +2,7 @@ import React, {useState} from 'react'
 import {LaunchIcon} from '@sanity/icons'
 import {DocumentActionProps} from 'sanity'
 
-import CrossDatasetDuplicator from '../components/CrossDatasetDuplicator'
+import {CrossDatasetDuplicatorAction} from '../components/CrossDatasetDuplicatorAction'
 
 /**
  * Document action from @sanity/cross-dataset-duplicator
@@ -20,19 +20,7 @@ export const DuplicateToAction = (props: DocumentActionProps) => {
       published && {
         type: 'modal',
         title: 'Cross Dataset Duplicator',
-        content: (
-          <CrossDatasetDuplicator
-            // TODO: Re-using the tool component was not clever
-            // Undo that decision
-            // @ts-ignore
-            tool={{
-              options: {
-                mode: 'action',
-                docs: [published],
-              },
-            }}
-          />
-        ),
+        content: <CrossDatasetDuplicatorAction docs={[published]} />,
         onClose: () => {
           onComplete()
           setDialogOpen(false)

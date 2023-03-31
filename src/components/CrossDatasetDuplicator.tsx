@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {useSecrets, SettingsView} from '@sanity/studio-secrets'
 import {Flex, Box, Spinner} from '@sanity/ui'
-import {SanityDocument, Tool} from 'sanity'
+import {SanityDocument} from 'sanity'
 
 import DuplicatorQuery from './DuplicatorQuery'
 import DuplicatorWrapper from './DuplicatorWrapper'
@@ -24,17 +24,13 @@ type Secrets = {
   bearerToken?: string
 }
 
-export type MultiToolConfig = {
+type CrossDatasetDuplicatorProps = {
   mode: 'tool' | 'action'
   docs: SanityDocument[]
 }
 
-type CrossDatasetDuplicatorProps = {
-  tool: Tool<MultiToolConfig>
-}
-
 export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProps) {
-  const {mode = `tool`, docs = []} = props.tool.options ?? {}
+  const {mode = `tool`, docs = []} = props ?? {}
   const pluginConfig = useCrossDatasetDuplicatorConfig()
 
   const {loading, secrets} = useSecrets<Secrets>(SECRET_NAMESPACE)
@@ -85,12 +81,5 @@ export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProp
     return <Feedback>No plugin config</Feedback>
   }
 
-  return (
-    <DuplicatorWrapper
-      docs={docs}
-      token={secrets?.bearerToken}
-      pluginConfig={pluginConfig}
-      // draftIds={[]}
-    />
-  )
+  return <DuplicatorWrapper docs={docs} token={secrets?.bearerToken} pluginConfig={pluginConfig} />
 }
