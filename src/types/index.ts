@@ -11,6 +11,10 @@ export interface PluginConfig {
   follow?: ('inbound' | 'outbound')[]
 }
 
+/**
+ * Cross Dataset Duplicator document action props
+ * @public
+ */
 export type CrossDatasetDuplicatorActionProps = {
   docs: SanityDocument[]
 }
