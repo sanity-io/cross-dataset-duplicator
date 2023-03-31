@@ -1,14 +1,14 @@
 import React, {useEffect, useState} from 'react'
 import {useSecrets, SettingsView} from '@sanity/studio-secrets'
 import {Flex, Box, Spinner} from '@sanity/ui'
-import {SanityDocument, Tool} from 'sanity'
+import {SanityDocument} from 'sanity'
 
 import DuplicatorQuery from './DuplicatorQuery'
 import DuplicatorWrapper from './DuplicatorWrapper'
 import ResetSecret from './ResetSecret'
 import Feedback from './Feedback'
 import {SECRET_NAMESPACE} from '../helpers/constants'
-import {PluginConfig} from '../types'
+import {useCrossDatasetDuplicatorConfig} from '../context/ConfigProvider'
 
 // Check for auth secret (required for asset uploads)
 const secretConfigKeys = [
@@ -24,18 +24,14 @@ type Secrets = {
   bearerToken?: string
 }
 
-export type MultiToolConfig = {
+type CrossDatasetDuplicatorProps = {
   mode: 'tool' | 'action'
   docs: SanityDocument[]
-  pluginConfig: PluginConfig
-}
-
-type CrossDatasetDuplicatorProps = {
-  tool: Tool<MultiToolConfig>
 }
 
 export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProps) {
-  const {mode = `tool`, docs = [], pluginConfig} = props.tool.options ?? {}
+  const {mode = `tool`, docs = []} = props ?? {}
+  const pluginConfig = useCrossDatasetDuplicatorConfig()
 
   const {loading, secrets} = useSecrets<Secrets>(SECRET_NAMESPACE)
   const [showSecretsPrompt, setShowSecretsPrompt] = useState(false)
@@ -85,12 +81,5 @@ export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProp
     return <Feedback>No plugin config</Feedback>
   }
 
-  return (
-    <DuplicatorWrapper
-      docs={docs}
-      token={secrets?.bearerToken}
-      pluginConfig={pluginConfig}
-      // draftIds={[]}
-    />
-  )
+  return <DuplicatorWrapper docs={docs} token={secrets?.bearerToken} pluginConfig={pluginConfig} />
 }

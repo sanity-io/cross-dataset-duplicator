@@ -1,18 +1,15 @@
 import React, {useState} from 'react'
 import {LaunchIcon} from '@sanity/icons'
 import {DocumentActionProps} from 'sanity'
-import {PluginConfig} from '../types'
 
-import CrossDatasetDuplicator from '../components/CrossDatasetDuplicator'
+import {CrossDatasetDuplicatorAction} from '../components/CrossDatasetDuplicatorAction'
 
-type DuplicateToActionProps = DocumentActionProps & {pluginConfig: PluginConfig}
-
-export default function DuplicateToAction({
-  draft,
-  published,
-  onComplete,
-  pluginConfig,
-}: DuplicateToActionProps) {
+/**
+ * Document action from the Cross Dataset Duplicator plugin
+ * @public
+ */
+export const DuplicateToAction = (props: DocumentActionProps) => {
+  const {draft, published, onComplete} = props
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return {
@@ -23,20 +20,7 @@ export default function DuplicateToAction({
       published && {
         type: 'modal',
         title: 'Cross Dataset Duplicator',
-        content: (
-          <CrossDatasetDuplicator
-            // TODO: Re-using the tool component was not clever
-            // Undo that decision
-            // @ts-ignore
-            tool={{
-              options: {
-                mode: 'action',
-                docs: [published],
-                pluginConfig,
-              },
-            }}
-          />
-        ),
+        content: <CrossDatasetDuplicatorAction docs={[published]} />,
         onClose: () => {
           onComplete()
           setDialogOpen(false)
@@ -46,3 +30,5 @@ export default function DuplicateToAction({
     icon: LaunchIcon,
   }
 }
+
+DuplicateToAction.action = 'duplicateTo'
