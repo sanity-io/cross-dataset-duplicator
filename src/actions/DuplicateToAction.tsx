@@ -5,7 +5,7 @@ import {DocumentActionProps} from 'sanity'
 import {CrossDatasetDuplicatorAction} from '../components/CrossDatasetDuplicatorAction'
 
 /**
- * Document action from @sanity/cross-dataset-duplicator
+ * Document action from the Cross Dataset Duplicator plugin
  * @public
  */
 export const DuplicateToAction = (props: DocumentActionProps) => {
