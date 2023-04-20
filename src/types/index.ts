@@ -17,4 +17,5 @@ export interface PluginConfig {
  */
 export type CrossDatasetDuplicatorActionProps = {
   docs: SanityDocument[]
+  onDuplicated?: () => Promise<void>
 }

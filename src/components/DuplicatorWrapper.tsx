@@ -6,7 +6,7 @@ import type {DuplicatorProps} from './Duplicator'
 import Duplicator from './Duplicator'
 
 export default function DuplicatorWrapper(props: DuplicatorProps) {
-  const {docs, token, pluginConfig} = props
+  const {docs, token, pluginConfig, onDuplicated} = props
   const [inbound, setInbound] = useState<SanityDocument[]>([])
   const {follow = []} = pluginConfig
 
@@ -60,6 +60,7 @@ export default function DuplicatorWrapper(props: DuplicatorProps) {
         token={token}
         // draftIds={[]}
         pluginConfig={pluginConfig}
+        onDuplicated={onDuplicated}
       />
     </Container>
   )
