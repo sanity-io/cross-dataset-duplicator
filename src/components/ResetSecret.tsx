@@ -1,4 +1,4 @@
-import React from 'react'
+import {useCallback} from 'react'
 import {useClient} from 'sanity'
 import {Button, Flex} from '@sanity/ui'
 
@@ -8,7 +8,7 @@ import {SECRET_NAMESPACE} from '../helpers/constants'
 export default function ResetSecret() {
   const client = useClient(clientConfig)
 
-  const handleClick = React.useCallback(() => {
+  const handleClick = useCallback(() => {
     client.delete({query: `*[_id == "secrets.${SECRET_NAMESPACE}"]`})
   }, [client])
 

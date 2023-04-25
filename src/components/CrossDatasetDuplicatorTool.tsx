@@ -1,4 +1,3 @@
-import React from 'react'
 import {SanityDocument, Tool} from 'sanity'
 
 import CrossDatasetDuplicator from './CrossDatasetDuplicator'

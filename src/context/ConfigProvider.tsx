@@ -1,4 +1,4 @@
-import React, {useContext} from 'react'
+import {useContext} from 'react'
 import {createContext} from 'react'
 import {LayoutProps} from 'sanity'
 
