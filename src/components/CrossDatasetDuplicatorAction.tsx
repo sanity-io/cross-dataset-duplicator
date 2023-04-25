@@ -1,4 +1,3 @@
-import React from 'react'
 import {CrossDatasetDuplicatorActionProps} from '../types'
 
 import CrossDatasetDuplicator from './CrossDatasetDuplicator'

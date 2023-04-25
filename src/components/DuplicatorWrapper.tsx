@@ -1,9 +1,10 @@
-import React, {useState, useEffect} from 'react'
+import {useState, useEffect} from 'react'
 import {Grid, Card, Container, Button} from '@sanity/ui'
 import {SanityDocument, useClient} from 'sanity'
 
 import type {DuplicatorProps} from './Duplicator'
 import Duplicator from './Duplicator'
+import {clientConfig} from '../helpers/clientConfig'
 
 export default function DuplicatorWrapper(props: DuplicatorProps) {
   const {docs, token, pluginConfig} = props
@@ -14,7 +15,7 @@ export default function DuplicatorWrapper(props: DuplicatorProps) {
   const [mode, setMode] = useState<'inbound' | 'outbound'>(
     follow.length === 1 ? follow[0] : `outbound`
   )
-  const client = useClient()
+  const client = useClient(clientConfig)
 
   // "Inbound" will start with all documents that reference the first one
   // And then you can gather "Outbound" references thereafter

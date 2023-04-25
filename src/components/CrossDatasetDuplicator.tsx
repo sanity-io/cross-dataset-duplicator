@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react'
+import {useEffect, useState} from 'react'
 import {useSecrets, SettingsView} from '@sanity/studio-secrets'
 import {Flex, Box, Spinner} from '@sanity/ui'
 import {SanityDocument} from 'sanity'

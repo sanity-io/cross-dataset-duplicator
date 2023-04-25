@@ -1,4 +1,3 @@
-import React from 'react'
 import {Box, Text, Badge, Tooltip} from '@sanity/ui'
 import type {BadgeTone} from '@sanity/ui'
 
