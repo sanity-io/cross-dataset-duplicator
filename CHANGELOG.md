@@ -5,6 +5,16 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.0](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.1.0...v1.2.0) (2023-04-27)
+
+### Features
+
+- **DocumentAction:** add `onDuplicated` prop ([#30](https://github.com/sanity-io/cross-dataset-duplicator/issues/30)) ([f553aca](https://github.com/sanity-io/cross-dataset-duplicator/commit/f553aca7ef35e2ec54f2f62e7f9e46c9067f6e29))
+
+### Bug Fixes
+
+- update useClient to use api, remove React default imports ([#31](https://github.com/sanity-io/cross-dataset-duplicator/issues/31)) ([f81c7c0](https://github.com/sanity-io/cross-dataset-duplicator/commit/f81c7c0eb48e67f9a840a83f96075716dd8f60df))
+
 ## [1.1.0](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.0.0...v1.1.0) (2023-03-31)
 
 ### Features
