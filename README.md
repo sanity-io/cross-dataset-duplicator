@@ -71,12 +71,62 @@ The plugin has some configuration options. These can be set by adding a config f
  })
 ```
 
-Options:
+#### Options:
 
 - `tool` (boolean, default: true) – Set whether the Migration **Tool** is enabled.
 - `types` (Array[String], default: []) – Set which Schema Types the Migration Action should be enabled in.
 - `filter` (String, default: undefined) - Set a predicate for documents when gathering dependencies.
 - `follow` (("inbound" | "outbound")[], default: []) – Add buttons to allow the user to begin with just the existing document or first fetch all inbound references.
+
+#### Action Options
+
+The Document Action has additional config options:
+
+- `onDuplicated` (`() => Promise<void>`, default: undefined) - fire a callback after documents have been duplicated.
+
+The `onDuplicated` callback could be used to update update metadata after documents have been synced, or to perform arbitrary cleanup tasks like closing the dialog:
+
+```tsx
+const DuplicatorAction = ({ published, onComplete }: DocumentActionProps) => {
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [duplicated, setDuplicated] = useState(false)
+
+  return {
+    label: 'Duplicate',
+    title: 'Duplicate',
+    tone: 'positive',
+    disabled: submitting || duplicated,
+    loading: submitting,
+    icon: PublishIcon,
+    dialog: dialogOpen && published && {
+      type: 'popover',
+      title: 'Cross Dataset Duplicator',
+      content: (
+        <CrossDatasetDuplicatorAction
+          docs={[published]}
+          onDuplicated={async () => {
+            alert('data migrated')
+            await new Promise((resolve) => {
+              setTimeout(() => {
+                setDialogOpen(false);
+                setDuplicated(true)
+                resolve()
+              }, 1000)
+            })
+          }}
+        />
+      ),
+      onHandle: () => setDialogOpen(true),
+      onClose: () => {
+        onComplete()
+        setDialogOpen(false)
+        setSubmitting(false)
+      }
+    },
+  }
+}
+```
 
 ### 3. Authentication Key
 

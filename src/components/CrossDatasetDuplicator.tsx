@@ -27,10 +27,11 @@ type Secrets = {
 type CrossDatasetDuplicatorProps = {
   mode: 'tool' | 'action'
   docs: SanityDocument[]
+  onDuplicated?: () => Promise<void>
 }
 
 export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProps) {
-  const {mode = `tool`, docs = []} = props ?? {}
+  const {mode = `tool`, docs = [], onDuplicated} = props ?? {}
   const pluginConfig = useCrossDatasetDuplicatorConfig()
 
   const {loading, secrets} = useSecrets<Secrets>(SECRET_NAMESPACE)
@@ -81,5 +82,12 @@ export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProp
     return <Feedback>No plugin config</Feedback>
   }
 
-  return <DuplicatorWrapper docs={docs} token={secrets?.bearerToken} pluginConfig={pluginConfig} />
+  return (
+    <DuplicatorWrapper
+      docs={docs}
+      token={secrets?.bearerToken}
+      pluginConfig={pluginConfig}
+      onDuplicated={onDuplicated}
+    />
+  )
 }

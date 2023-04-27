@@ -46,6 +46,7 @@ export type DuplicatorProps = {
   // draftIds: string[]
   token: string
   pluginConfig: PluginConfig
+  onDuplicated?: () => Promise<void>
 }
 
 export type PayloadItem = {
@@ -65,7 +66,7 @@ type Message = {
 }
 
 export default function Duplicator(props: DuplicatorProps) {
-  const {docs, token, pluginConfig} = props
+  const {docs, token, pluginConfig, onDuplicated} = props
   const isDarkMode = useTheme().sanity.color.dark
 
   // Prepare origin (this Studio) client
@@ -342,6 +343,13 @@ export default function Duplicator(props: DuplicatorProps) {
 
     setIsDuplicating(false)
     setProgress([0, 0])
+    if (onDuplicated) {
+      try {
+        await onDuplicated()
+      } catch (error) {
+        setMessage({tone: 'critical', text: `Error in onDuplicated hook: ${error}`})
+      }
+    }
   }
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {

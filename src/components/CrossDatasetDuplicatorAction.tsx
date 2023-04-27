@@ -7,7 +7,7 @@ import CrossDatasetDuplicator from './CrossDatasetDuplicator'
  * @public
  */
 export function CrossDatasetDuplicatorAction(props: CrossDatasetDuplicatorActionProps) {
-  const {docs = []} = props
+  const {docs = [], onDuplicated} = props
 
-  return <CrossDatasetDuplicator mode="action" docs={docs} />
+  return <CrossDatasetDuplicator mode="action" docs={docs} onDuplicated={onDuplicated} />
 }
