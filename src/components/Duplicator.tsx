@@ -275,7 +275,7 @@ export default function Duplicator(props: DuplicatorProps) {
           tone: 'default',
         })
 
-        return setProgress([currentProgress, assetsCount])
+        setProgress([currentProgress, assetsCount])
       }
 
       return transactionDocs.push(doc)
