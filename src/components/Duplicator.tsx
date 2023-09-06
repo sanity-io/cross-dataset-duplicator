@@ -244,7 +244,7 @@ export default function Duplicator(props: DuplicatorProps) {
     async function fetchDoc(doc: SanityAssetDocument) {
       if (isAssetId(doc._id)) {
         // Download and upload asset
-        // Get the *original* image with this dlRaw param to create the same determenistic _id
+        // Get the *original* image with this dlRaw param to create the same deterministic _id
         const typeIsFile = isSanityFileAsset(doc)
         const downloadUrl = typeIsFile ? doc.url : `${doc.url}?dlRaw=true`
         const downloadConfig = typeIsFile ? {} : {headers: {Authorization: `Bearer ${token}`}}
@@ -275,7 +275,7 @@ export default function Duplicator(props: DuplicatorProps) {
           tone: 'default',
         })
 
-        return setProgress([currentProgress, assetsCount])
+        setProgress([currentProgress, assetsCount])
       }
 
       return transactionDocs.push(doc)
