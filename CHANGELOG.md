@@ -5,6 +5,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.1](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.2.0...v1.2.1) (2023-09-06)
+
+### Bug Fixes
+
+- add asset metadata document to transaction ([#34](https://github.com/sanity-io/cross-dataset-duplicator/issues/34)) ([f9728e1](https://github.com/sanity-io/cross-dataset-duplicator/commit/f9728e138c3614a33a2ed6531cd0bd82e4ffae9e))
+
 ## [1.2.0](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.1.0...v1.2.0) (2023-04-27)
 
 ### Features
