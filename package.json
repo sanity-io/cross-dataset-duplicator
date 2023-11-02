@@ -64,7 +64,7 @@
     "@sanity/ui": "^1.0.0",
     "async": "^3.2.1",
     "dset": "^3.1.0",
-    "semantic-release": "^22.0.0",
+    "semantic-release": "^22.0.6",
     "styled-components": "^5.3.3"
   },
   "devDependencies": {
