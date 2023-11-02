@@ -1,6 +1,7 @@
 # Cross Dataset Duplicator
 
 Sanity Studio v3 Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
+
 ## Installation
 
 ```
@@ -39,7 +40,7 @@ The **Duplicate to...** Document Action allows you to migrate an individual Docu
 
 ### 1. Workspaces
 
-You must have more than one [Workspace configured](https://www.sanity.io/docs/config-api-reference#37c85e3072b2) to use this plugin. 
+You must have more than one [Workspace configured](https://www.sanity.io/docs/config-api-reference#37c85e3072b2) to use this plugin.
 
 All Datasets and Project IDs set up as Workspaces will become selectable "destinations" for Migrations.
 
@@ -87,7 +88,7 @@ The Document Action has additional config options:
 The `onDuplicated` callback could be used to update update metadata after documents have been synced, or to perform arbitrary cleanup tasks like closing the dialog:
 
 ```tsx
-const DuplicatorAction = ({ published, onComplete }: DocumentActionProps) => {
+const DuplicatorAction = ({published, onComplete}: DocumentActionProps) => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [duplicated, setDuplicated] = useState(false)
@@ -99,31 +100,32 @@ const DuplicatorAction = ({ published, onComplete }: DocumentActionProps) => {
     disabled: submitting || duplicated,
     loading: submitting,
     icon: PublishIcon,
-    dialog: dialogOpen && published && {
-      type: 'popover',
-      title: 'Cross Dataset Duplicator',
-      content: (
-        <CrossDatasetDuplicatorAction
-          docs={[published]}
-          onDuplicated={async () => {
-            alert('data migrated')
-            await new Promise((resolve) => {
-              setTimeout(() => {
-                setDialogOpen(false);
-                setDuplicated(true)
-                resolve()
-              }, 1000)
-            })
-          }}
-        />
-      ),
-      onHandle: () => setDialogOpen(true),
-      onClose: () => {
-        onComplete()
-        setDialogOpen(false)
-        setSubmitting(false)
-      }
-    },
+    dialog: dialogOpen &&
+      published && {
+        type: 'popover',
+        title: 'Cross Dataset Duplicator',
+        content: (
+          <CrossDatasetDuplicatorAction
+            docs={[published]}
+            onDuplicated={async () => {
+              alert('data migrated')
+              await new Promise((resolve) => {
+                setTimeout(() => {
+                  setDialogOpen(false)
+                  setDuplicated(true)
+                  resolve()
+                }, 1000)
+              })
+            }}
+          />
+        ),
+        onHandle: () => setDialogOpen(true),
+        onClose: () => {
+          onComplete()
+          setDialogOpen(false)
+          setSubmitting(false)
+        },
+      },
   }
 }
 ```

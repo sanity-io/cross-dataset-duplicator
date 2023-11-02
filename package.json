@@ -21,6 +21,10 @@
       "types": "./dist/index.d.ts",
       "source": "./src/index.ts",
       "require": "./dist/index.js",
+      "node": {
+        "module": "./dist/index.esm.js",
+        "import": "./dist/index.cjs.mjs"
+      },
       "import": "./dist/index.esm.js",
       "default": "./dist/index.esm.js"
     },
@@ -64,11 +68,11 @@
     "styled-components": "^5.3.3"
   },
   "devDependencies": {
-    "@commitlint/cli": "^17.5.1",
-    "@commitlint/config-conventional": "^17.4.4",
+    "@commitlint/cli": "^18.2.0",
+    "@commitlint/config-conventional": "^18.1.0",
     "@sanity/pkg-utils": "^2.2.13",
     "@sanity/plugin-kit": "^3.1.7",
-    "@sanity/semantic-release-preset": "^4.1.0",
+    "@sanity/semantic-release-preset": "^4.1.6",
     "@types/react": "^18.0.31",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
@@ -79,7 +83,7 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.2.0",
+    "lint-staged": "^15.0.2",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.7",
     "prettier-plugin-packagejson": "^2.4.3",
