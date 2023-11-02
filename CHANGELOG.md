@@ -5,6 +5,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.3](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.2.2...v1.2.3) (2023-11-02)
+
+### Bug Fixes
+
+- update semantic release ([#38](https://github.com/sanity-io/cross-dataset-duplicator/issues/38)) ([ba23802](https://github.com/sanity-io/cross-dataset-duplicator/commit/ba23802f438a150664c3e7f26d2c2d3e91d75ad7))
+
 ## [1.2.2](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.2.1...v1.2.2) (2023-11-02)
 
 ### Bug Fixes
