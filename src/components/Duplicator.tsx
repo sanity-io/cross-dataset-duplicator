@@ -264,7 +264,15 @@ export default function Duplicator(props: DuplicatorProps) {
             svgMaps.push({old: doc._id, new: assetDoc._id})
           }
 
+          // This adds the newly created asset document to the transaction but ...
+          // it doesn't have some of the original asset's metadata like `altText` or `title`
           transactionDocs.push(assetDoc)
+
+          // So the original `doc` is added to the transaction as well below
+          // However, we don't want to retain `url` or `path` keys
+          // because these strings contain the origin's dataset name
+          doc.url = assetDoc.url
+          doc.path = assetDoc.path
         })
 
         currentProgress += 1
