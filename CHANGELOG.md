@@ -5,6 +5,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.4](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.2.3...v1.2.4) (2024-01-02)
+
+### Bug Fixes
+
+- use new 'url' and 'path' keys when uploading assets ([#39](https://github.com/sanity-io/cross-dataset-duplicator/issues/39)) ([6b52a5a](https://github.com/sanity-io/cross-dataset-duplicator/commit/6b52a5a20981449918095d1c88fd6ce965bd0383))
+
 ## [1.2.3](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.2.2...v1.2.3) (2023-11-02)
 
 ### Bug Fixes
