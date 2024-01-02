@@ -27,6 +27,7 @@ import {
   Checkbox,
   CardTone,
   useTheme,
+  Spinner,
 } from '@sanity/ui'
 import {ArrowRightIcon, SearchIcon, LaunchIcon} from '@sanity/icons'
 import {SanityAssetDocument} from '@sanity/client'
@@ -229,7 +230,7 @@ export default function Duplicator(props: DuplicatorProps) {
     let currentProgress = 0
     setProgress([currentProgress, assetsCount])
 
-    setMessage({text: 'Duplicating...', tone: `default`})
+    setMessage({text: 'Duplicating...', tone: `transparent`})
 
     const destinationClient = originClient.withConfig({
       ...clientConfig,
@@ -428,137 +429,138 @@ export default function Duplicator(props: DuplicatorProps) {
     <Container width={1}>
       <Card border>
         <Stack>
-          <>
-            <Card borderBottom padding={4} style={stickyStyles(isDarkMode)}>
-              <Stack space={4}>
-                <Flex gap={3}>
-                  <Stack style={{flex: 1}} space={3}>
-                    <Label>Duplicate from</Label>
-                    <Select
-                      readOnly
-                      value={workspacesOptions.find((space) => space.disabled)?.name}
-                    >
-                      {workspacesOptions
-                        .filter((space) => space.disabled)
-                        .map((space) => (
-                          <option key={space.name} value={space.name} disabled={space.disabled}>
-                            {space.title ?? space.name}
-                            {hasMultipleProjectIds ? ` (${space.projectId})` : ``}
-                          </option>
-                        ))}
-                    </Select>
-                  </Stack>
-                  <Box padding={4} paddingTop={5} paddingBottom={0}>
-                    <Text size={3}>
-                      <ArrowRightIcon />
-                    </Text>
-                  </Box>
-                  <Stack style={{flex: 1}} space={3}>
-                    <Label>To Destination</Label>
-                    <Select onChange={handleChange}>
-                      {workspacesOptions.map((space) => (
+          <Card padding={4} style={stickyStyles(isDarkMode)}>
+            <Stack space={4}>
+              <Flex gap={3}>
+                <Stack style={{flex: 1}} space={3}>
+                  <Label>Duplicate from</Label>
+                  <Select readOnly value={workspacesOptions.find((space) => space.disabled)?.name}>
+                    {workspacesOptions
+                      .filter((space) => space.disabled)
+                      .map((space) => (
                         <option key={space.name} value={space.name} disabled={space.disabled}>
                           {space.title ?? space.name}
                           {hasMultipleProjectIds ? ` (${space.projectId})` : ``}
-                          {space.disabled ? ` (Current)` : ``}
                         </option>
                       ))}
-                    </Select>
-                  </Stack>
-                </Flex>
+                  </Select>
+                </Stack>
+                <Box padding={4} paddingTop={5} paddingBottom={0}>
+                  <Text size={3}>
+                    <ArrowRightIcon />
+                  </Text>
+                </Box>
+                <Stack style={{flex: 1}} space={3}>
+                  <Label>To Destination</Label>
+                  <Select onChange={handleChange}>
+                    {workspacesOptions.map((space) => (
+                      <option key={space.name} value={space.name} disabled={space.disabled}>
+                        {space.title ?? space.name}
+                        {hasMultipleProjectIds ? ` (${space.projectId})` : ``}
+                        {space.disabled ? ` (Current)` : ``}
+                      </option>
+                    ))}
+                  </Select>
+                </Stack>
+              </Flex>
 
-                {isDuplicating && (
-                  <Card border radius={2}>
-                    <Card
-                      style={{
-                        width: '100%',
-                        transform: `scaleX(${progress[0] / progress[1]})`,
-                        transformOrigin: 'left',
-                        transition: 'transform .2s ease',
-                        boxSizing: 'border-box',
-                      }}
-                      padding={1}
-                      tone="positive"
-                    />
-                  </Card>
-                )}
-                {payload.length > 0 && (
-                  <>
-                    <Label>{headingText}</Label>
-                    <SelectButtons payload={payload} setPayload={setPayload} />
-                  </>
-                )}
-              </Stack>
-            </Card>
-            {message && (
-              <Box paddingX={4} paddingTop={4}>
+              {isDuplicating && (
+                <Card border radius={2}>
+                  <Card
+                    style={{
+                      width: '100%',
+                      transform: `scaleX(${progress[0] / progress[1]})`,
+                      transformOrigin: 'left',
+                      transition: 'transform .2s ease',
+                      boxSizing: 'border-box',
+                    }}
+                    padding={1}
+                    tone="positive"
+                  />
+                </Card>
+              )}
+              {payload.length > 0 && (
+                <>
+                  <Label>{headingText}</Label>
+                  <SelectButtons payload={payload} setPayload={setPayload} />
+                </>
+              )}
+            </Stack>
+          </Card>
+          <Card borderTop padding={4}>
+            <Stack space={3}>
+              {message && (
                 <Card padding={3} radius={2} shadow={1} tone={message.tone}>
                   <Text size={1}>{message.text}</Text>
                 </Card>
-              </Box>
-            )}
-            {payload.length > 0 && (
-              <Stack padding={4} space={3}>
-                {payload.map(({doc, include, status, hasDraft}, index) => {
-                  const schemaType = schema.get(doc._type)
+              )}
+              {payload.length > 0 ? (
+                <Stack>
+                  {payload.map(({doc, include, status, hasDraft}, index) => {
+                    const schemaType = schema.get(doc._type)
 
-                  return (
-                    <React.Fragment key={doc._id}>
-                      <Flex align="center">
-                        <Checkbox checked={include} onChange={() => handleCheckbox(doc._id)} />
-                        <Box flex={1} paddingX={3}>
-                          {schemaType ? (
-                            <Preview value={doc} schemaType={schemaType} />
-                          ) : (
-                            <Card tone="caution">Invalid schema type</Card>
-                          )}
-                        </Box>
-                        <Flex align="center" gap={2}>
-                          {hasDraft ? <StatusBadge status="UNPUBLISHED" isAsset={false} /> : null}
-                          <StatusBadge status={status} isAsset={isAssetId(doc._id)} />
+                    return (
+                      <React.Fragment key={doc._id}>
+                        <Flex align="center">
+                          <Checkbox checked={include} onChange={() => handleCheckbox(doc._id)} />
+                          <Box flex={1} paddingX={3}>
+                            {schemaType ? (
+                              <Preview value={doc} schemaType={schemaType} />
+                            ) : (
+                              <Card tone="caution">Invalid schema type</Card>
+                            )}
+                          </Box>
+                          <Flex align="center" gap={2}>
+                            {hasDraft ? <StatusBadge status="UNPUBLISHED" isAsset={false} /> : null}
+                            <StatusBadge status={status} isAsset={isAssetId(doc._id)} />
+                          </Flex>
                         </Flex>
-                      </Flex>
-                      {doc?.extension === 'svg' && index === firstSvgIndex && (
-                        <Card padding={3} radius={2} shadow={1} tone="caution">
-                          <Text size={1}>
-                            Due to how SVGs are sanitized after first uploaded, duplicated SVG
-                            assets may have new <code>_id</code>'s at the destination. The newly
-                            generated <code>_id</code> will be the same in each duplication, but it
-                            will never be the same <code>_id</code> as the first time this Asset was
-                            uploaded. References to the asset will be updated to use the new{' '}
-                            <code>_id</code>.
-                          </Text>
-                        </Card>
-                      )}
-                    </React.Fragment>
-                  )
-                })}
-              </Stack>
-            )}
-            <Stack space={2} padding={4} paddingTop={0}>
-              {hasReferences && (
+                        {doc?.extension === 'svg' && index === firstSvgIndex && (
+                          <Card padding={3} radius={2} shadow={1} tone="caution">
+                            <Text size={1}>
+                              Due to how SVGs are sanitized after first uploaded, duplicated SVG
+                              assets may have new <code>_id</code>'s at the destination. The newly
+                              generated <code>_id</code> will be the same in each duplication, but
+                              it will never be the same <code>_id</code> as the first time this
+                              Asset was uploaded. References to the asset will be updated to use the
+                              new <code>_id</code>.
+                            </Text>
+                          </Card>
+                        )}
+                      </React.Fragment>
+                    )
+                  })}
+                </Stack>
+              ) : (
+                <Flex padding={4} align="center" justify="center">
+                  <Spinner />
+                </Flex>
+              )}
+              <Stack space={2}>
+                {hasReferences && (
+                  <Button
+                    fontSize={2}
+                    padding={4}
+                    tone="positive"
+                    mode="ghost"
+                    icon={SearchIcon}
+                    onClick={handleReferences}
+                    text="Gather References"
+                    disabled={isDuplicating || !selectedTotal || isGathering}
+                  />
+                )}
                 <Button
                   fontSize={2}
                   padding={4}
                   tone="positive"
-                  mode="ghost"
-                  icon={SearchIcon}
-                  onClick={handleReferences}
-                  text="Gather References"
+                  icon={LaunchIcon}
+                  onClick={handleDuplicate}
+                  text={buttonText}
                   disabled={isDuplicating || !selectedTotal || isGathering}
                 />
-              )}
-              <Button
-                fontSize={2}
-                padding={4}
-                tone="positive"
-                icon={LaunchIcon}
-                onClick={handleDuplicate}
-                text={buttonText}
-                disabled={isDuplicating || !selectedTotal || isGathering}
-              />
+              </Stack>
             </Stack>
-          </>
+          </Card>
         </Stack>
       </Card>
     </Container>
