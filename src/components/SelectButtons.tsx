@@ -61,7 +61,7 @@ export default function SelectButtons(props: SelectButtonsProps) {
 
   return (
     <Card padding={1} radius={3} shadow={1}>
-      <Flex gap={2}>
+      <Flex gap={2} wrap="wrap">
         {buttons.map((action, actionIndex) =>
           action ? (
             <Button
