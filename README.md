@@ -66,7 +66,9 @@ The plugin has some configuration options. These can be set by adding a config f
       // Optional settings
       tool: true,
       filter: '_type != "product"',
-      follow: []
+      follow: [],
+      referenceMaxDepth: 2, // Number of documents deep to follow,  0 represents the current document only
+      referenceMaxDepthAssetsOnly: true // If true, only gather image and file assests.  'referenceMaxDepth' must be set.
     })
   ]
  })
@@ -78,6 +80,8 @@ The plugin has some configuration options. These can be set by adding a config f
 - `types` (Array[String], default: []) – Set which Schema Types the Migration Action should be enabled in.
 - `filter` (String, default: undefined) - Set a predicate for documents when gathering dependencies.
 - `follow` (("inbound" | "outbound")[], default: []) – Add buttons to allow the user to begin with just the existing document or first fetch all inbound references.
+- `referenceMaxDepth` (Number, default: undefined) - The level of documents deep to follow, `0` represents the current document only. Must be a positive number. This is useful for when when gathering references returns a large number of references or when you want to be a bit more intentional about the which reference you gather.
+- `referenceMaxDepthAssetsOnly`: (boolean) - If true, only gather image and file assests. The 'referenceMaxDepth' option must be set for this to work.
 
 #### Action Options
 

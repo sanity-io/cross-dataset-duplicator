@@ -9,6 +9,8 @@ export interface PluginConfig {
   types?: string[]
   filter?: string
   follow?: ('inbound' | 'outbound')[]
+  referenceMaxDepth?: number
+  referenceMaxDepthAssetsOnly?: boolean
 }
 
 /**
