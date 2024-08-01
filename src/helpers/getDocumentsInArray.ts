@@ -68,7 +68,7 @@ export async function getDocumentsInArray(
           if (newReferenceIds.size) {
             // Recursive query for new documents
 
-            // If the referenceMaxDepth is set, enter here for recursion and the option to only return assets
+            // If the reference?.maxDepth is set, enter here for recursion and the option to only return assets
             if (typeof reference?.maxDepth === 'number' && reference?.maxDepth >= 0) {
               recurrsionDepth++
 
@@ -84,14 +84,14 @@ export async function getDocumentsInArray(
 
               // I know this is a bit messy... but I hit the max nesting eslint limit
               if (
-                // // If we are at the max depth and referenceMaxDepthAssetsOnly is falsy
+                // // If we are at the max depth and reference?.assetsOnly is falsy
                 referenceDocs?.length &&
                 recurrsionDepth === reference.maxDepth + 1 &&
                 !reference?.assetsOnly
               ) {
                 collection.push(...referenceDocs)
               } else if (
-                // // If we are at the max depth and referenceMaxDepthAssetsOnly is truthy
+                // // If we are at the max depth and reference?.assetsOnly is truthy
                 referenceDocs?.length &&
                 recurrsionDepth === reference.maxDepth + 1 &&
                 reference?.assetsOnly
