@@ -67,8 +67,10 @@ The plugin has some configuration options. These can be set by adding a config f
       tool: true,
       filter: '_type != "product"',
       follow: [],
-      referenceMaxDepth: 2, // Number of documents deep to follow,  0 represents the current document only
-      referenceMaxDepthAssetsOnly: true // If true, only gather image and file assests.  'referenceMaxDepth' must be set.
+      reference: {
+        maxDepth: 1, // Number of documents deep to follow.  0 represents the current document only.
+        assetsOnly: true, // If true, only gather image and file assests.  'referenceMaxDepth' must be set.
+      },
     })
   ]
  })

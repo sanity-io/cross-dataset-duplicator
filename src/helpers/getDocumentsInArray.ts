@@ -24,7 +24,7 @@ export async function getDocumentsInArray(
   recurrsionDepth: number = 0
 ): Promise<SanityDocument[]> {
   const {fetchIds, client, pluginConfig, currentIds, projection} = options
-  const {referenceMaxDepth, referenceMaxDepthAssetsOnly} = pluginConfig
+  const {reference} = pluginConfig
   const collection: SanityDocument[] = []
 
   // Find initial docs
@@ -69,7 +69,7 @@ export async function getDocumentsInArray(
             // Recursive query for new documents
 
             // If the referenceMaxDepth is set, enter here for recursion and the option to only return assets
-            if (typeof referenceMaxDepth === 'number' && referenceMaxDepth >= 0) {
+            if (typeof reference?.maxDepth === 'number' && reference?.maxDepth >= 0) {
               recurrsionDepth++
 
               const referenceDocs = await getDocumentsInArray(
@@ -86,18 +86,18 @@ export async function getDocumentsInArray(
               if (
                 // // If we are at the max depth and referenceMaxDepthAssetsOnly is falsy
                 referenceDocs?.length &&
-                recurrsionDepth === referenceMaxDepth + 1 &&
-                !referenceMaxDepthAssetsOnly
+                recurrsionDepth === reference.maxDepth + 1 &&
+                !reference?.assetsOnly
               ) {
                 collection.push(...referenceDocs)
               } else if (
                 // // If we are at the max depth and referenceMaxDepthAssetsOnly is truthy
                 referenceDocs?.length &&
-                recurrsionDepth === referenceMaxDepth + 1 &&
-                referenceMaxDepthAssetsOnly
+                recurrsionDepth === reference.maxDepth + 1 &&
+                reference?.assetsOnly
               ) {
                 collection.push(...returnOnlyAssets(referenceDocs))
-              } else if (referenceDocs?.length && recurrsionDepth < referenceMaxDepth + 1) {
+              } else if (referenceDocs?.length && recurrsionDepth < reference.maxDepth + 1) {
                 // // If we are not at the max depth
                 collection.push(...referenceDocs)
               }
