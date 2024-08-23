@@ -1,4 +1,11 @@
 {
   "extends": "@sanity/semantic-release-preset",
-  "branches": ["main"]
+  "branches": [
+    "main",
+    {
+      "name": "feat/add-reference-max-depth",
+      "channel": "reference-max-depth",
+      "prerelease": "reference-max-depth-test>"
+    }
+  ]
 }

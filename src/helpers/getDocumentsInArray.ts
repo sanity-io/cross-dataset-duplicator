@@ -10,10 +10,21 @@ type OptionsBag = {
   projection?: string
 }
 
+const isAsset = (doc: SanityDocument) =>
+  doc._type === 'sanity.imageAsset' || doc._type === 'sanity.fileAsset'
+
+const returnOnlyAssets = (references: SanityDocument[]) =>
+  references.filter((item) => isAsset(item))
+
 // Recursively fetch Documents from an array of _id's and their references
 // Heavy use of Set is to avoid recursively querying for id's already in the payload
-export async function getDocumentsInArray(options: OptionsBag): Promise<SanityDocument[]> {
+
+export async function getDocumentsInArray(
+  options: OptionsBag,
+  recurrsionDepth: number = 0
+): Promise<SanityDocument[]> {
   const {fetchIds, client, pluginConfig, currentIds, projection} = options
+  const {reference} = pluginConfig
   const collection: SanityDocument[] = []
 
   // Find initial docs
@@ -56,15 +67,51 @@ export async function getDocumentsInArray(options: OptionsBag): Promise<SanityDo
 
           if (newReferenceIds.size) {
             // Recursive query for new documents
-            const referenceDocs = await getDocumentsInArray({
-              fetchIds: Array.from(newReferenceIds),
-              currentIds: localCurrentIds,
-              client,
-              pluginConfig,
-            })
 
-            if (referenceDocs?.length) {
-              collection.push(...referenceDocs)
+            // If the reference?.maxDepth is set, enter here for recursion and the option to only return assets
+            if (typeof reference?.maxDepth === 'number' && reference?.maxDepth >= 0) {
+              recurrsionDepth++
+
+              const referenceDocs = await getDocumentsInArray(
+                {
+                  fetchIds: Array.from(newReferenceIds),
+                  currentIds: localCurrentIds,
+                  client,
+                  pluginConfig,
+                },
+                recurrsionDepth
+              )
+
+              // I know this is a bit messy... but I hit the max nesting eslint limit
+              if (
+                // // If we are at the max depth and reference?.assetsOnly is falsy
+                referenceDocs?.length &&
+                recurrsionDepth === reference.maxDepth + 1 &&
+                !reference?.assetsOnly
+              ) {
+                collection.push(...referenceDocs)
+              } else if (
+                // // If we are at the max depth and reference?.assetsOnly is truthy
+                referenceDocs?.length &&
+                recurrsionDepth === reference.maxDepth + 1 &&
+                reference?.assetsOnly
+              ) {
+                collection.push(...returnOnlyAssets(referenceDocs))
+              } else if (referenceDocs?.length && recurrsionDepth < reference.maxDepth + 1) {
+                // // If we are not at the max depth
+                collection.push(...referenceDocs)
+              }
+            } else {
+              const referenceDocs = await getDocumentsInArray({
+                fetchIds: Array.from(newReferenceIds),
+                currentIds: localCurrentIds,
+                client,
+                pluginConfig,
+              })
+
+              if (referenceDocs?.length) {
+                collection.push(...referenceDocs)
+              }
             }
           }
         }
