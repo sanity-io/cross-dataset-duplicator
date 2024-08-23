@@ -6,7 +6,7 @@ import {SanityDocument} from 'sanity'
  */
 export type reference = {
   maxDepth: number // Number of documents deep to follow
-  assetsOnly?: boolean // If true, only gather image and file assests
+  assetsOnly?: boolean // If true, only gather image and file assets
 }
 
 /**

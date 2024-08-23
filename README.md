@@ -5,13 +5,13 @@ Sanity Studio v3 Tool and Document Action for empowering content editors to migr
 ## Installation
 
 ```
-npm install --save @sanity/cross-dataset-duplicator
+npm install --save @sanity/cross-dataset-duplicator@reference-max-depth
 ```
 
 or
 
 ```
-yarn add @sanity/cross-dataset-duplicator
+yarn add @sanity/cross-dataset-duplicator@reference-max-depth
 ```
 
 ### Important Notes
@@ -69,7 +69,7 @@ The plugin has some configuration options. These can be set by adding a config f
       follow: [],
       reference: {
         maxDepth: 1, // Number of documents deep to follow.  0 represents the current document only.
-        assetsOnly: true, // If true, only gather image and file assests.  'referenceMaxDepth' must be set.
+        assetsOnly: true, // If true, only gather image and file assets.  'referenceMaxDepth' must be set.
       },
     })
   ]
@@ -83,7 +83,7 @@ The plugin has some configuration options. These can be set by adding a config f
 - `filter` (String, default: undefined) - Set a predicate for documents when gathering dependencies.
 - `follow` (("inbound" | "outbound")[], default: []) – Add buttons to allow the user to begin with just the existing document or first fetch all inbound references.
 - `reference.maxDepth` (Number, default: undefined) - The level of documents deep to follow, `0` represents the current document only. Must be a positive number. This is useful for when when gathering references returns a large number of references or when you want to be a bit more intentional about the which reference you gather.
-- `reference.assetsOnly`: (boolean) - If true, only gather image and file assests. The 'referenceMaxDepth' option must be set for this to work.
+- `reference.assetsOnly`: (boolean) - If true, only gather image and file assets. The 'referenceMaxDepth' option must be set for this to work.
 
 #### Action Options
 
