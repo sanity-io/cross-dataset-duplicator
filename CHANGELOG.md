@@ -5,6 +5,17 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.0-beta.1](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.3.0...v1.4.0-beta.1) (2024-08-23)
+
+### Features
+
+- **options:** add options and functionalty for adding a max depth when gathering references ([0a6b078](https://github.com/sanity-io/cross-dataset-duplicator/commit/0a6b078ced3977ae09bd309ab0a8a85a07a68240))
+
+### Bug Fixes
+
+- **options:** attempt to fix the prerelease field ([ff41323](https://github.com/sanity-io/cross-dataset-duplicator/commit/ff41323a1d98a121568da6c81352a1058e8f1e2c))
+- **options:** attempt to fix the prerelease field ([dd9ea46](https://github.com/sanity-io/cross-dataset-duplicator/commit/dd9ea4608e2f5fb79682ff5d0c66560bd1bc29d8))
+
 ## [1.3.0](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.2.4...v1.3.0) (2024-01-23)
 
 ### Features
