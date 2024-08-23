@@ -5,6 +5,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.0-beta.2](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.4.0-beta.1...v1.4.0-beta.2) (2024-08-23)
+
+### Bug Fixes
+
+- **options:** update readme and fix typo ([74fd4f2](https://github.com/sanity-io/cross-dataset-duplicator/commit/74fd4f24a2961cb4a3de7f1b38890bfa09585a8e))
+
 ## [1.4.0-beta.1](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.3.0...v1.4.0-beta.1) (2024-08-23)
 
 ### Features
