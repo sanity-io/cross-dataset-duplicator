@@ -4,9 +4,20 @@ import {Button, Card, Flex} from '@sanity/ui'
 import {PayloadItem} from './Duplicator'
 import {isAssetId} from '@sanity/asset-utils'
 
-const buttons = [`All`, `None`, null, `New`, `Existing`, `Older`, null, `Documents`, `Assets`]
+const buttons = [
+  `All`,
+  `None`,
+  null,
+  `New`,
+  `Existing`,
+  `Updated`,
+  `Older`,
+  null,
+  `Documents`,
+  `Assets`,
+]
 
-type Action = 'ALL' | 'NONE' | 'NEW' | 'EXISTING' | 'OLDER' | 'ASSETS' | 'DOCUMENTS'
+type Action = 'ALL' | 'NONE' | 'NEW' | 'EXISTING' | 'UPDATED' | 'OLDER' | 'ASSETS' | 'DOCUMENTS'
 
 type SelectButtonsProps = {
   payload: PayloadItem[]
@@ -41,6 +52,11 @@ export default function SelectButtons(props: SelectButtonsProps) {
         break
       case 'EXISTING':
         newPayload.map((item) => (item.include = Boolean(item.status === 'EXISTS')))
+        break
+      case 'UPDATED':
+        newPayload.map(
+          (item) => (item.include = Boolean(item.status === 'UPDATE' && !isAssetId(item.doc._id)))
+        ) // Exclude assets from this list, because 'UPDATE' state is mapped to 'RE-UPLOAD' action in UI
         break
       case 'OLDER':
         newPayload.map((item) => (item.include = Boolean(item.status === 'OVERWRITE')))
