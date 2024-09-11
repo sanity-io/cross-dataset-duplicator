@@ -63,7 +63,7 @@
     "@sanity/studio-secrets": "^2.0.2",
     "@sanity/ui": "^1.9.3",
     "async": "^3.2.1",
-    "dset": "^3.1.0",
+    "dset": "^3.1.4",
     "semantic-release": "^22.0.12"
   },
   "devDependencies": {
