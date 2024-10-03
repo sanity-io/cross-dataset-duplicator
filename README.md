@@ -66,7 +66,13 @@ The plugin has some configuration options. These can be set by adding a config f
       // Optional settings
       tool: true,
       filter: '_type != "product"',
-      follow: []
+      follow: [],
+      queries:[
+        {
+          label: "All Posts"
+          query: groq`*[_type == 'post']`
+        }
+      ]
     })
   ]
  })
@@ -77,7 +83,8 @@ The plugin has some configuration options. These can be set by adding a config f
 - `tool` (boolean, default: true) – Set whether the Migration **Tool** is enabled.
 - `types` (Array[String], default: []) – Set which Schema Types the Migration Action should be enabled in.
 - `filter` (String, default: undefined) - Set a predicate for documents when gathering dependencies.
-- `follow` (("inbound" | "outbound")[], default: []) – Add buttons to allow the user to begin with just the existing document or first fetch all inbound references.
+- `follow` (("inbound" | "outbound")[], default: ["outbound"]) – Add buttons to allow the user to begin with just the existing document or first fetch all inbound references.
+- `queries`(Array[{label: string, query: string}], default: []) - Add button to allow the query to be populate with predefined useful queries.
 
 #### Action Options
 
