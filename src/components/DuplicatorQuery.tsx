@@ -116,7 +116,7 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
                         padding={2}
                         paddingX={4}
                         tone="primary"
-                        onClick={() => setValue(query.query)}
+                        onClick={() => setValue(`*[${query.query}]`)}
                         text={query.label}
                       />
                     ))}

@@ -69,8 +69,8 @@ The plugin has some configuration options. These can be set by adding a config f
       follow: [],
       queries:[
         {
-          label: "All Posts"
-          query: groq`*[_type == 'post']`
+          label: "All articles",
+          query: '_type == "article"'
         }
       ]
     })
