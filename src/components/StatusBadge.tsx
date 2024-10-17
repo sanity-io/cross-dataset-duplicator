@@ -1,3 +1,4 @@
+import {InfoOutlineIcon} from '@sanity/icons'
 import {Box, Text, Badge, Tooltip} from '@sanity/ui'
 import type {BadgeTone} from '@sanity/ui'
 
@@ -100,7 +101,7 @@ export default function StatusBadge(props: StatusBadgeProps) {
       portal
     >
       <Badge muted padding={2} fontSize={1} tone={badgeTone} mode="outline">
-        {badgeStatus}
+        {badgeStatus} <InfoOutlineIcon />
       </Badge>
     </Tooltip>
   )
