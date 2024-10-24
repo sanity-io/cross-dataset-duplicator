@@ -92,8 +92,9 @@ export default function Duplicator(props: DuplicatorProps) {
         (m) =>
           m.dataset === workspace.dataset &&
           // If project ID is configured for target, check that filter matches.
-          m.projectId &&
-          m.projectId === workspace.projectId
+          ((m.projectId && m.projectId === workspace.projectId) ||
+            // If project ID is not configured for target, check that source and target are in the same project.
+            workspace.projectId === sourceProjectId)
       )
     return {
       ...workspace,
