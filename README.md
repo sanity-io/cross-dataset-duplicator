@@ -67,6 +67,7 @@ The plugin has some configuration options. These can be set by adding a config f
       tool: true,
       filter: '_type != "product"',
       follow: []
+      migrationFilters: []
     })
   ]
  })
@@ -78,6 +79,7 @@ The plugin has some configuration options. These can be set by adding a config f
 - `types` (Array[String], default: []) – Set which Schema Types the Migration Action should be enabled in.
 - `filter` (String, default: undefined) - Set a predicate for documents when gathering dependencies.
 - `follow` (("inbound" | "outbound")[], default: []) – Add buttons to allow the user to begin with just the existing document or first fetch all inbound references.
+- `migrationFilters` (Array[{ sourceDataset: string, targets: Array[{ projectId?: string; dataset: string }]], default: []) – Set which Datasets and Projects are allowed as destinations for Migrations. If no targets for a dataset is provided, all Workspaces are allowed as targets.
 
 #### Action Options
 
@@ -145,7 +147,6 @@ If you want to duplicate data across different projects, you need to enable CORS
 ## Future feature ideas
 
 - Save predefined GROQ queries in the Tool to make bulk repeated Migrations simpler
-- Config options for allowed migrations (eg Dev -> Staging but not Dev -> Live)
 - Config options for permissions/user role checks
 
 ## License

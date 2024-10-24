@@ -1,5 +1,10 @@
 import {SanityDocument} from 'sanity'
 
+type MigrationFilter = {
+  sourceDataset: string
+  targets: {projectId?: string; dataset: string}[]
+}
+
 /**
  * Plugin configuration
  * @public
@@ -9,6 +14,7 @@ export interface PluginConfig {
   types?: string[]
   filter?: string
   follow?: ('inbound' | 'outbound')[]
+  migrationFilters?: MigrationFilter[]
 }
 
 /**
