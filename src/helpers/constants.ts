@@ -7,4 +7,5 @@ export const DEFAULT_CONFIG: PluginConfig = {
   types: [],
   filter: '',
   follow: ['outbound'],
+  migrationFilters: [],
 }

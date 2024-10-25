@@ -78,10 +78,33 @@ export default function Duplicator(props: DuplicatorProps) {
   // Create list of dataset options
   // and set initial value of dropdown
   const workspaces = useWorkspaces()
-  const workspacesOptions: WorkspaceOption[] = workspaces.map((workspace) => ({
-    ...workspace,
-    disabled: workspace.dataset === originClient.config().dataset,
-  }))
+  const {projectId: sourceProjectId, dataset: sourceDataset} = originClient.config()
+  const workspacesOptions: WorkspaceOption[] = workspaces.map((workspace) => {
+    const migrationFilter = pluginConfig.migrationFilters?.find(
+      (m) => m.sourceDataset === sourceDataset
+    )
+    const isSourceWorkspace =
+      workspace.projectId === sourceProjectId && workspace.dataset === sourceDataset
+    const isAllowedMigration =
+      // If no migrationFilter is configured for this dataset, allow all migration targets.
+      !migrationFilter ||
+      migrationFilter.targets.find(
+        (m) =>
+          m.dataset === workspace.dataset &&
+          // If project ID is configured for target, check that filter matches.
+          ((m.projectId && m.projectId === workspace.projectId) ||
+            // If project ID is not configured for target, check that source and target are in the same project.
+            workspace.projectId === sourceProjectId)
+      )
+    return {
+      ...workspace,
+      disabled: isSourceWorkspace || !isAllowedMigration,
+    }
+  })
+
+  const currentWorkspace = workspacesOptions.find(
+    (workspace) => workspace.projectId === sourceProjectId && workspace.dataset === sourceDataset
+  )
 
   const [destination, setDestination] = useState<WorkspaceOption | null>(
     workspaces.length ? workspacesOptions.find((space) => !space.disabled) ?? null : null
@@ -434,7 +457,7 @@ export default function Duplicator(props: DuplicatorProps) {
               <Flex gap={3}>
                 <Stack style={{flex: 1}} space={3}>
                   <Label>Duplicate from</Label>
-                  <Select readOnly value={workspacesOptions.find((space) => space.disabled)?.name}>
+                  <Select readOnly value={currentWorkspace?.name}>
                     {workspacesOptions
                       .filter((space) => space.disabled)
                       .map((space) => (
@@ -457,7 +480,10 @@ export default function Duplicator(props: DuplicatorProps) {
                       <option key={space.name} value={space.name} disabled={space.disabled}>
                         {space.title ?? space.name}
                         {hasMultipleProjectIds ? ` (${space.projectId})` : ``}
-                        {space.disabled ? ` (Current)` : ``}
+                        {currentWorkspace?.name === space.name &&
+                        currentWorkspace.projectId === space.projectId
+                          ? ` (Current)`
+                          : ``}
                       </option>
                     ))}
                   </Select>
