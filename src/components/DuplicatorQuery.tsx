@@ -109,7 +109,7 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
               <Card marginTop={2} padding={4} radius={3} border>
                 <Box>
                   <Stack space={4}>
-                    <Text>Useful Queries</Text>
+                    <Text>Predefined queries</Text>
                     {preDefinedQueries.map((query) => (
                       <Button
                         key={query.label.replace(/\s+/g, '-')}
