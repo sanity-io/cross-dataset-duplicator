@@ -109,17 +109,21 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
               <Card marginTop={2} padding={4} radius={3} border>
                 <Box>
                   <Stack space={4}>
-                    <Text>Predefined queries</Text>
-                    {preDefinedQueries.map((query) => (
-                      <Button
-                        key={query.label.replace(/\s+/g, '-')}
-                        padding={2}
-                        paddingX={4}
-                        tone="primary"
-                        onClick={() => setValue(`*[${query.query}]`)}
-                        text={query.label}
-                      />
-                    ))}
+                    <Box>
+                      <Label>Predefined Queries</Label>
+                    </Box>
+                    <Stack space={2}>
+                      {preDefinedQueries.map((query) => (
+                        <Button
+                          key={query.label.replace(/\s+/g, '-')}
+                          padding={2}
+                          paddingX={4}
+                          tone="primary"
+                          onClick={() => setValue(`*[${query.query}]`)}
+                          text={query.label}
+                        />
+                      ))}
+                    </Stack>
                   </Stack>
                 </Box>
               </Card>
@@ -128,9 +132,7 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
           {fetched && initialData.docs.length < 1 && (
             <Container width={1}>
               <Card padding={5}>
-                {value
-                  ? `No Documents registered to the Schema match this query`
-                  : `Start with a valid GROQ query`}
+                {value ? `No documents match this query` : `Start with a valid GROQ query`}
               </Card>
             </Container>
           )}
