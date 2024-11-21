@@ -106,7 +106,7 @@ export default function Duplicator(props: DuplicatorProps) {
       initialPayload.push({include: true, doc})
     })
 
-    setPayload(initialPayload)
+    updatePayloadStatuses(initialPayload)
 
     const docCount = docs.length
     const refsCount = initialRefs.length

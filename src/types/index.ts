@@ -1,5 +1,9 @@
 import {SanityDocument} from 'sanity'
 
+type PreDefinedQuery = {
+  label: string
+  query: string
+}
 /**
  * Plugin configuration
  * @public
@@ -9,6 +13,7 @@ export interface PluginConfig {
   types?: string[]
   filter?: string
   follow?: ('inbound' | 'outbound')[]
+  queries?: PreDefinedQuery[]
 }
 
 /**

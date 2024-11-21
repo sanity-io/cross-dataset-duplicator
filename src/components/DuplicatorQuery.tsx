@@ -19,17 +19,18 @@ type InitialData = {
 export default function DuplicatorQuery(props: DuplicatorQueryProps) {
   const {token, pluginConfig} = props
 
+  const {queries: preDefinedQueries} = pluginConfig
   const originClient = useClient(clientConfig)
 
   const schema = useSchema()
   const schemaTypes = schema.getTypeNames()
 
   const [value, setValue] = useState(``)
+  const [fetched, setFetched] = useState(false)
   const [initialData, setInitialData] = useState<InitialData>({
     docs: [],
     // draftIds: []
   })
-
   function handleSubmit(e?: any) {
     if (e) e.preventDefault()
 
@@ -50,6 +51,7 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
           docs: registeredAndPublishedDocs,
           // draftIds: initialDraftIds
         })
+        setFetched(true)
       })
       .catch((err) => console.error(err))
   }
@@ -103,17 +105,37 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
                 </form>
               </Stack>
             </Card>
+            {preDefinedQueries && preDefinedQueries?.length > 0 && (
+              <Card marginTop={2} padding={4} radius={3} border>
+                <Box>
+                  <Stack space={4}>
+                    <Box>
+                      <Label>Predefined Queries</Label>
+                    </Box>
+                    <Stack space={2}>
+                      {preDefinedQueries.map((query) => (
+                        <Button
+                          key={query.label.replace(/\s+/g, '-')}
+                          padding={2}
+                          paddingX={4}
+                          tone="primary"
+                          onClick={() => setValue(`*[${query.query}]`)}
+                          text={query.label}
+                        />
+                      ))}
+                    </Stack>
+                  </Stack>
+                </Box>
+              </Card>
+            )}
           </Box>
-          {!initialData.docs?.length ||
-            (initialData.docs.length < 1 && (
-              <Container width={1}>
-                <Card padding={5}>
-                  {value
-                    ? `No Documents registered to the Schema match this query`
-                    : `Start with a valid GROQ query`}
-                </Card>
-              </Container>
-            ))}
+          {fetched && initialData.docs.length < 1 && (
+            <Container width={1}>
+              <Card padding={5}>
+                {value ? `No documents match this query` : `Start with a valid GROQ query`}
+              </Card>
+            </Container>
+          )}
           {initialData.docs?.length > 0 && (
             <Duplicator
               docs={initialData.docs}
