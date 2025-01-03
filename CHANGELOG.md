@@ -5,6 +5,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.1](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.4.0...v1.4.1) (2025-01-03)
+
+### Bug Fixes
+
+- multiproject disabled, add check for projectId ([#55](https://github.com/sanity-io/cross-dataset-duplicator/issues/55)) ([bf6e6ba](https://github.com/sanity-io/cross-dataset-duplicator/commit/bf6e6ba2d15a099d1198a2f30eba4335ff5ce0f8))
+
 ## [1.4.0](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.3.0...v1.4.0) (2024-11-21)
 
 ### Features
