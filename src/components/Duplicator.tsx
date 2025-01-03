@@ -80,7 +80,9 @@ export default function Duplicator(props: DuplicatorProps) {
   const workspaces = useWorkspaces()
   const workspacesOptions: WorkspaceOption[] = workspaces.map((workspace) => ({
     ...workspace,
-    disabled: workspace.dataset === originClient.config().dataset,
+    disabled:
+      workspace.dataset === originClient.config().dataset &&
+      workspace.projectId === originClient.config().projectId,
   }))
 
   const [destination, setDestination] = useState<WorkspaceOption | null>(
