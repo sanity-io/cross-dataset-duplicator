@@ -9,6 +9,7 @@ type PreDefinedQuery = {
  * @public
  */
 export interface PluginConfig {
+  apiVersion?: string
   tool?: boolean
   types?: string[]
   filter?: string

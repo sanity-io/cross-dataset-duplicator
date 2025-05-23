@@ -10,7 +10,7 @@ import {PluginConfig} from './types'
  * Plugin: Cross Dataset Duplicator
  * @public
  */
-export const crossDatasetDuplicator = definePlugin<PluginConfig | void>((config = {}) => {
+export const crossDatasetDuplicator = definePlugin<Partial<PluginConfig> | void>((config = {}) => {
   const pluginConfig = {...DEFAULT_CONFIG, ...config}
   const {types} = pluginConfig
 

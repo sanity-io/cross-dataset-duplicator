@@ -4,18 +4,17 @@ import {SanityDocument, useClient} from 'sanity'
 
 import type {DuplicatorProps} from './Duplicator'
 import Duplicator from './Duplicator'
-import {clientConfig} from '../helpers/clientConfig'
 
 export default function DuplicatorWrapper(props: DuplicatorProps) {
   const {docs, token, pluginConfig, onDuplicated} = props
   const [inbound, setInbound] = useState<SanityDocument[]>([])
-  const {follow = []} = pluginConfig
+  const {follow = [], apiVersion} = pluginConfig
 
   // Make the first mode the default if there's only one
   const [mode, setMode] = useState<'inbound' | 'outbound'>(
     follow.length === 1 ? follow[0] : `outbound`
   )
-  const client = useClient(clientConfig)
+  const client = useClient({apiVersion})
 
   // "Inbound" will start with all documents that reference the first one
   // And then you can gather "Outbound" references thereafter

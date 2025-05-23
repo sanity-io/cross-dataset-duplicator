@@ -69,7 +69,7 @@ export default function CrossDatasetDuplicator(props: CrossDatasetDuplicatorProp
     return (
       <>
         <DuplicatorQuery token={secrets?.bearerToken} pluginConfig={pluginConfig} />
-        <ResetSecret />
+        <ResetSecret apiVersion={pluginConfig.apiVersion} />
       </>
     )
   }

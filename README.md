@@ -64,6 +64,7 @@ The plugin has some configuration options. These can be set by adding a config f
       // Required settings to show document action
       types: ['article', 'page'],
       // Optional settings
+      apiVersion: '2025-02-19',
       tool: true,
       filter: '_type != "product"',
       follow: [],
