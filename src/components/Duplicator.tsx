@@ -38,7 +38,6 @@ import {getDocumentsInArray} from '../helpers/getDocumentsInArray'
 import SelectButtons from './SelectButtons'
 import StatusBadge, {MessageTypes} from './StatusBadge'
 import Feedback from './Feedback'
-import {clientConfig} from '../helpers/clientConfig'
 import {PluginConfig} from '../types'
 
 export type DuplicatorProps = {
@@ -46,7 +45,7 @@ export type DuplicatorProps = {
   // TODO: Find out if this is even used?
   // draftIds: string[]
   token: string
-  pluginConfig: PluginConfig
+  pluginConfig: Required<PluginConfig>
   onDuplicated?: () => Promise<void>
 }
 
@@ -71,7 +70,7 @@ export default function Duplicator(props: DuplicatorProps) {
   const isDarkMode = useTheme().sanity.color.dark
 
   // Prepare origin (this Studio) client
-  const originClient = useClient(clientConfig)
+  const originClient = useClient({apiVersion: pluginConfig.apiVersion})
 
   const schema = useSchema()
 
@@ -139,7 +138,6 @@ export default function Duplicator(props: DuplicatorProps) {
 
     const payloadIds = payloadActual.map(({doc}) => doc._id)
     const destinationClient = originClient.withConfig({
-      ...clientConfig,
       dataset: destination.dataset,
       projectId: destination.projectId,
     })
@@ -235,7 +233,7 @@ export default function Duplicator(props: DuplicatorProps) {
     setMessage({text: 'Duplicating...', tone: `transparent`})
 
     const destinationClient = originClient.withConfig({
-      ...clientConfig,
+      apiVersion: pluginConfig.apiVersion,
       dataset: destination.dataset,
       projectId: destination.projectId,
     })

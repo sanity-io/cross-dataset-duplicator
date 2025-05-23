@@ -7,7 +7,7 @@ import {PluginConfig} from '../types'
 
 const CrossDatasetDuplicatorContext = createContext(DEFAULT_CONFIG)
 
-type ConfigProviderProps = LayoutProps & {pluginConfig: PluginConfig}
+type ConfigProviderProps = LayoutProps & {pluginConfig: Required<PluginConfig>}
 
 /**
  * Plugin config context hook from the Cross Dataset Duplicator plugin

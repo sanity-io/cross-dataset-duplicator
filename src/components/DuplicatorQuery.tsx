@@ -3,24 +3,22 @@ import {Button, Stack, Box, Label, Text, Card, Flex, Grid, Container, TextInput}
 import {useSchema, useClient, SanityDocument} from 'sanity'
 
 import Duplicator from './Duplicator'
-import {clientConfig} from '../helpers/clientConfig'
 import {PluginConfig} from '../types'
 
 type DuplicatorQueryProps = {
   token: string
-  pluginConfig: PluginConfig
+  pluginConfig: Required<PluginConfig>
 }
 
 type InitialData = {
   docs: SanityDocument[]
-  // draftIds: string[]
 }
 
 export default function DuplicatorQuery(props: DuplicatorQueryProps) {
   const {token, pluginConfig} = props
 
-  const {queries: preDefinedQueries} = pluginConfig
-  const originClient = useClient(clientConfig)
+  const {queries: preDefinedQueries, apiVersion} = pluginConfig
+  const originClient = useClient({apiVersion})
 
   const schema = useSchema()
   const schemaTypes = schema.getTypeNames()
@@ -29,7 +27,6 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
   const [fetched, setFetched] = useState(false)
   const [initialData, setInitialData] = useState<InitialData>({
     docs: [],
-    // draftIds: []
   })
   function handleSubmit(e?: any) {
     if (e) e.preventDefault()
@@ -43,13 +40,9 @@ export default function DuplicatorQuery(props: DuplicatorQueryProps) {
               .filter((doc) => schemaTypes.includes(doc._type))
               .filter((doc) => !doc._id.startsWith(`drafts.`))
           : []
-        // const initialDraftIds = res.length
-        //   ? res.filter((doc) => doc._id.startsWith(`drafts.`)).map((doc) => doc._id)
-        //   : []
 
         setInitialData({
           docs: registeredAndPublishedDocs,
-          // draftIds: initialDraftIds
         })
         setFetched(true)
       })
