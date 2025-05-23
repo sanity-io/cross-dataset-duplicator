@@ -2,6 +2,9 @@
 
 Sanity Studio v3 Tool and Document Action for empowering content editors to migrate Documents and Assets between Sanity Datasets and Projects from inside the Studio.
 
+> [!IMPORTANT]
+> You might not need this plugin. It was developed long before Sanity had fully-featured [live preview, visual editing](https://www.sanity.io/docs/visual-editing/introduction-to-visual-editing), [perspectives](https://www.sanity.io/docs/content-lake/perspectives) and [content releases](https://www.sanity.io/docs/user-guides/content-releases) which are more seamless ways to stage and preview content before publishing into production. It is recommended you investigate these features first before using this plugin.
+
 ## Installation
 
 ```
