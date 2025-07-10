@@ -5,6 +5,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.5.0](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.4.2...v1.5.0) (2025-07-10)
+
+### Features
+
+- allow studio v4, bump ui deps to v2, allow react 19 ([f5b86a2](https://github.com/sanity-io/cross-dataset-duplicator/commit/f5b86a299551e61248923f9a23172f8e9dce387b))
+
 ## [1.4.2](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.4.1...v1.4.2) (2025-05-23)
 
 ### Bug Fixes
