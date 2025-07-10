@@ -12,27 +12,23 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:sanity-io/cross-dataset-duplicator.git"
+    "url": "git+ssh://git@github.com/sanity-io/cross-dataset-duplicator.git"
   },
+  "type": "commonjs",
+  "sideEffects": false,
   "license": "MIT",
   "author": "Sanity.io <hello@sanity.io>",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
       "source": "./src/index.ts",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.js",
-      "node": {
-        "module": "./dist/index.esm.js",
-        "import": "./dist/index.cjs.mjs"
-      },
-      "import": "./dist/index.esm.js",
-      "default": "./dist/index.esm.js"
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
-  "module": "./dist/index.esm.js",
-  "source": "./src/index.ts",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
@@ -41,12 +37,12 @@
     "v2-incompatible.js"
   ],
   "scripts": {
-    "build": "run-s clean && plugin-kit verify-package --silent && pkg-utils build --strict && pkg-utils --strict",
+    "build": "plugin-kit verify-package --silent && pkg-utils build --strict --check --clean",
     "clean": "rimraf dist",
     "format": "prettier --write --cache --ignore-unknown .",
     "link-watch": "plugin-kit link-watch",
     "lint": "eslint .",
-    "prepublishOnly": "run-s build",
+    "prepublishOnly": "npm run build",
     "watch": "pkg-utils watch --strict",
     "prepare": "husky install"
   },
@@ -68,8 +64,8 @@
   "devDependencies": {
     "@commitlint/cli": "^18.2.0",
     "@commitlint/config-conventional": "^18.1.0",
-    "@sanity/pkg-utils": "^2.4.10",
-    "@sanity/plugin-kit": "^3.1.10",
+    "@sanity/pkg-utils": "^7.9.3",
+    "@sanity/plugin-kit": "^4.0.19",
     "@sanity/semantic-release-preset": "^4.1.6",
     "@types/react": "^18.0.31",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
@@ -92,15 +88,15 @@
     "sanity": "^3.79.0",
     "semantic-release": "^22.0.12",
     "styled-components": "^6.1.8",
-    "typescript": "^5.0.3"
+    "typescript": "5.8.3"
   },
   "peerDependencies": {
     "react": "^18.3 || ^19",
     "react-dom": "^18.3 || ^19",
-    "sanity": "^3.79.0 || ^4.0.0-0",
+    "sanity": "^3.98.1 || ^4.0.0-0",
     "styled-components": "^6.1"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18"
   }
 }
