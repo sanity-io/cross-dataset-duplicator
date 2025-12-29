@@ -5,6 +5,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.5.1](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.5.0...v1.5.1) (2025-12-29)
+
+### Bug Fixes
+
+- **deps:** allow studio v5 in peer deps ranges ([#60](https://github.com/sanity-io/cross-dataset-duplicator/issues/60)) ([3abc569](https://github.com/sanity-io/cross-dataset-duplicator/commit/3abc569e4495c728c8dddcbc1a8a503a41f95977))
+
 ## [1.5.0](https://github.com/sanity-io/cross-dataset-duplicator/compare/v1.4.2...v1.5.0) (2025-07-10)
 
 ### Features
