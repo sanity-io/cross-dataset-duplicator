@@ -7,6 +7,7 @@ import {
   useWorkspaces,
   WorkspaceSummary,
   SanityDocument,
+  SanityClient,
 } from 'sanity'
 // @ts-ignore
 import mapLimit from 'async/mapLimit'
@@ -39,6 +40,109 @@ import SelectButtons from './SelectButtons'
 import StatusBadge, {MessageTypes} from './StatusBadge'
 import Feedback from './Feedback'
 import {PluginConfig} from '../types'
+
+type SetMessage = (msg: {text: string; tone: CardTone}) => void
+
+async function commitOneByOne(
+  docs: SanityDocument[],
+  client: SanityClient,
+  setMessage: SetMessage,
+  onSuccess: () => void
+): Promise<void> {
+  let successCount = 0
+  let failCount = 0
+  for (const doc of docs) {
+    try {
+      const tx = client.transaction()
+      tx.createOrReplace(doc)
+      // eslint-disable-next-line no-await-in-loop
+      await tx.commit()
+      successCount++
+    } catch (_e) {
+      failCount++
+    }
+  }
+  if (failCount === 0) {
+    setMessage({tone: 'positive', text: 'Duplication complete!'})
+    onSuccess()
+  } else {
+    setMessage({
+      tone: 'critical',
+      text: `Duplication finished with ${failCount} error(s). ${successCount} document(s) duplicated successfully.`,
+    })
+    if (successCount > 0) onSuccess()
+  }
+}
+
+type ReferenceErrorOptions = {
+  err: any
+  transactionDocs: SanityDocument[]
+  originClient: SanityClient
+  destinationClient: SanityClient
+  setMessage: SetMessage
+  onSuccess: () => void
+}
+
+async function handleReferenceError(options: ReferenceErrorOptions): Promise<void> {
+  const {err, transactionDocs, originClient, destinationClient, setMessage, onSuccess} = options
+  const description: string = err?.details?.description ?? err?.message ?? ''
+
+  // Extract missing document IDs from error details or description string
+  const missingIds: string[] = []
+
+  if (Array.isArray(err?.details?.items)) {
+    for (const item of err.details.items) {
+      const refId = item?.error?.referencedId ?? item?.error?.referenceId
+      if (refId && !missingIds.includes(refId)) missingIds.push(refId)
+    }
+  }
+
+  const refRegex = /references non-existent document [`'"]?([^`'"\s)]+)[`'"]?/gi
+  let match
+  // eslint-disable-next-line no-cond-assign
+  while ((match = refRegex.exec(description)) !== null) {
+    if (!missingIds.includes(match[1])) missingIds.push(match[1])
+  }
+
+  if (!missingIds.length) {
+    // IDs not parseable – fall back to one-by-one
+    setMessage({tone: 'default', text: 'Retrying documents one by one...'})
+    await commitOneByOne(transactionDocs, destinationClient, setMessage, onSuccess)
+    return
+  }
+
+  setMessage({
+    tone: 'default',
+    text: `Fetching ${missingIds.length} missing referenced document(s) and retrying...`,
+  })
+
+  let missingDocs: SanityDocument[] = []
+  try {
+    missingDocs = await originClient.fetch(`*[_id in $ids]`, {ids: missingIds})
+  } catch (fetchErr: any) {
+    setMessage({tone: 'critical', text: description || (fetchErr as Error)?.message})
+    return
+  }
+
+  const allDocs = [...transactionDocs, ...missingDocs]
+
+  if (missingDocs.length > 0) {
+    setMessage({tone: 'default', text: `Duplicating ${missingDocs.length} missing document(s)...`})
+    const retryTx = destinationClient.transaction()
+    allDocs.forEach((doc) => retryTx.createOrReplace(doc))
+    try {
+      await retryTx.commit()
+      setMessage({tone: 'positive', text: 'Duplication complete!'})
+      onSuccess()
+    } catch (_retryErr) {
+      setMessage({tone: 'default', text: 'Retrying documents one by one...'})
+      await commitOneByOne(allDocs, destinationClient, setMessage, onSuccess)
+    }
+  } else {
+    setMessage({tone: 'default', text: 'Retrying documents one by one...'})
+    await commitOneByOne(transactionDocs, destinationClient, setMessage, onSuccess)
+  }
+}
 
 export type DuplicatorProps = {
   docs: SanityDocument[]
@@ -339,16 +443,29 @@ export default function Duplicator(props: DuplicatorProps) {
       transaction.createOrReplace(doc)
     })
 
-    await transaction
-      .commit()
-      .then((res) => {
-        setMessage({tone: 'positive', text: 'Duplication complete!'})
+    try {
+      await transaction.commit()
+      setMessage({tone: 'positive', text: 'Duplication complete!'})
+      updatePayloadStatuses()
+    } catch (err: any) {
+      const description: string = err?.details?.description ?? err?.message ?? ''
+      const isReferenceError =
+        description.toLowerCase().includes('references non-existent document') ||
+        description.toLowerCase().includes('reference non-existent')
 
-        updatePayloadStatuses()
-      })
-      .catch((err) => {
-        setMessage({tone: 'critical', text: err.details.description})
-      })
+      if (isReferenceError) {
+        await handleReferenceError({
+          err,
+          transactionDocs: transactionDocsMapped,
+          originClient,
+          destinationClient,
+          setMessage,
+          onSuccess: updatePayloadStatuses,
+        })
+      } else {
+        setMessage({tone: 'critical', text: description || 'Duplication failed'})
+      }
+    }
 
     setIsDuplicating(false)
     setProgress([0, 0])
