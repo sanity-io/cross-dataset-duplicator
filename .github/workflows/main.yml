@@ -46,7 +46,7 @@ jobs:
     name: Lint & Build
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v5
         with:
           cache: npm
           node-version: lts/*
@@ -86,7 +86,7 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v5
         with:
           cache: npm
           node-version: ${{ matrix.node }}
@@ -116,7 +116,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: false
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v5
         with:
           cache: npm
           node-version: lts/*
